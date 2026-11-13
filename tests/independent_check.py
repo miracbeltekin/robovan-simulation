@@ -42,7 +42,7 @@ KIND = {'robovan': 'robo', 'conventional': 'ice'}
 bad = 0; checks = 0; worst = 0.0
 for i, o in enumerate(data):
     c = o['cfg']; sc = c['scenario']; km = c['route']['manualKm']
-    mine = {v['id']: calc(KIND[v['category']], v['params'], sc, km, sc['demand'], sc['fleet'] if KIND[v['category']] == 'robo' else 0) for v in c['fleet']}
+    mine = {v['id']: calc(KIND[v['category']], v['params'], sc, km, sc['demand'], (v.get('count') or 0) or (sc['fleet'] if KIND[v['category']] == 'robo' else 0)) for v in c['fleet']}
     for k in mine:
         for f, ev in o['res'][k].items():
             mv = mine[k][f]; checks += 1

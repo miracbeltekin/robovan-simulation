@@ -20,12 +20,12 @@ const SCHEMA = [
 
 /* Rakamlarım > Operasyon (temel) ve Gelişmiş senaryo alanları: [anahtar, etiket, birim] */
 const SCENARIO_OPS = [['demand','Günlük toplam sefer (tüm iş)','sefer/gün'],['days','Çalışma günü','gün/yıl'],['stops','Sefer başına durak','adet'],['loadMin','Durak başına yükleme','dk']];
-const SCENARIO_ADV = [['loadPct','Ortalama yük doluluğu','%'],['rate','Sermaye (finansman) maliyeti','%/yıl'],['horizon','Değerlendirme süresi','yıl'],['fleet','Robovan sayısını sabitle (0 = otomatik)','adet']];
+const SCENARIO_ADV = [['loadPct','Ortalama yük doluluğu','%'],['rate','Sermaye (finansman) maliyeti','%/yıl'],['horizon','Değerlendirme süresi','yıl']];
 /* Her kategoride temel alanlar: Robovan — satın alma, elektrik, bakım, operatör; Geleneksel Van — satın alma, dizel, bakım, sürücü. Kalanlar Gelişmiş'tedir. */
 const CORE = { robovan: ['price','kwh100','elec','maint','operator'], conventional: ['price','l100','fuel','maint','driver'] };
 const DESC = {
   days: 'Yılda kaç gün çalışıldığı.', demand: 'Tüm iş için günlük toplam sefer sayısı. Araç sayısı buna göre hesaplanır.', stops: 'Her seferde yapılan durak sayısı.', loadMin: 'Her durakta yükleme/boşaltma süresi.',
-  loadPct: 'Araç kapasitesinin ortalama ne kadarının dolu olduğu.', rate: 'Yatırımın yıllık finansman (sermaye) maliyeti.', horizon: 'Toplam maliyetin hesaplandığı yıl sayısı.', fleet: 'Robovan sayısını elle sabitler; 0 = otomatik.',
+  loadPct: 'Araç kapasitesinin ortalama ne kadarının dolu olduğu.', rate: 'Yatırımın yıllık finansman (sermaye) maliyeti.', horizon: 'Toplam maliyetin hesaplandığı yıl sayısı.', fleet: '',
   price: 'Aracın satın alma bedeli.', infra: 'Şarj istasyonu ve altyapı; araç başına.', residual: 'Ömür sonunda aracın alış bedelinin kaçta kaçının kaldığı.', life: 'Aracın kullanılacağı yıl sayısı; amortisman bu süreye yayılır.', eng: 'Haritalama ve devreye alma mühendisliği; tüm filo için bir kez.',
   l100: '100 km yolda yakılan dizel miktarı.', fuel: 'Dizelin litre fiyatı.', kwh100: '100 km yolda harcanan elektrik.', elec: 'Elektriğin kWh fiyatı.', eff: 'Şarjda kaybolmayan enerji oranı.', chargeKw: 'Şarj gücü; şarj süresini belirler.', range: 'Tek şarjla gidilebilen mesafe.',
   maint: 'Kilometre başına bakım gideri.', tire: 'Kilometre başına lastik gideri.', ins: 'Yıllık sigorta bedeli.', tax: 'Yıllık vergi ve muayene.', lic: 'Yazılım ve bağlantı lisansı (aylık).',

@@ -232,6 +232,22 @@ dayCfgs().forEach((c, i) => {
   const b = L.at(10); truthy(GK, '10. dakikada ilk araç yolda, ikinci araç bekliyor', b.filter((x) => x.modelId === 'robovan')[0].phase !== 'wait' && b.filter((x) => x.modelId === 'robovan')[1].phase === 'wait');
   const end = L.at(L.endMin + 5); truthy(GK, 'Gün sonunda araçlar "tamam" ve başlangıçta park', end.every((x) => x.done && x.posFrac === 1)); }
 
+/* ===== L. Araç sayısı (her model için; 0 = otomatik) ===== */
+const GL = 'Araç sayısı';
+{ const c = base(); truthy(GL, 'Varsayılan araç sayısı alanı 0 (otomatik)', c.fleet.every((v) => v.count === 0));
+  c.fleet[1].count = 6; const r = E.analyze(c); eq(GL, 'Geleneksel Van sayısı elle 6 → n = 6', 6, r.vehicles.conventional.n); eq(GL, 'Robovan etkilenmez (otomatik 2)', 2, r.vehicles.robovan.n);
+  eq(GL, 'Otomatik değer saklanır (autoN = 4)', 4, r.vehicles.conventional.autoN);
+  truthy(GL, 'Daha çok araç = daha çok sabit gider: yıllık filo maliyeti artar', r.vehicles.conventional.fleet > V.conventional.fleet);
+  eqRel(GL, 'Araç başına sefer = talep ÷ araç', 8 / 6, r.vehicles.conventional.tpv, 0.0001);
+  truthy(GL, 'Fazla araç uyarı üretmez', !r.warnings.some((w) => w.includes('yetmiyor'))); }
+{ const c = base(); c.fleet[1].count = 1; const r = E.analyze(c); truthy(GL, 'Geleneksel Van tek araç → "yetmiyor, gereken 4" uyarısı, hesap sürer', r.ok && r.warnings.some((w) => w.includes('Geleneksel Van') && w.includes('yetmiyor') && w.includes('4')) && r.vehicles.conventional.n === 1); }
+{ const c = base(); c.fleet[0].count = 3; const r = E.analyze(c); eq(GL, 'Robovan sayısı elle 3', 3, r.vehicles.robovan.n); const c2 = base(); c2.scenario.fleet = 3; eq(GL, 'Eski senaryo alanı (Robovan sabitle) aynı sonucu verir', r.vehicles.robovan.fleet, E.analyze(c2).vehicles.robovan.fleet);
+  const c3 = base(); c3.scenario.fleet = 3; c3.fleet[0].count = 5; eq(GL, 'Araç alanı senaryo alanından önceliklidir', 5, E.analyze(c3).vehicles.robovan.n); }
+{ const c = base(); c.fleet[1].count = 2.5; truthy(GL, 'Ondalık araç sayısı reddedilir', E.analyze(c).ok === false); c.fleet[1].count = -1; truthy(GL, 'Negatif araç sayısı reddedilir', E.analyze(c).ok === false); c.fleet[1].count = 5000; truthy(GL, '1000 üstü reddedilir', E.analyze(c).ok === false); c.fleet[1].count = NaN; truthy(GL, 'NaN reddedilir', E.analyze(c).ok === false); }
+{ const c = base(); c.fleet[1].count = 5; c.fleet.push(E.makeVehicle('conventional', 'cv2', 'Van 2')); const r = E.analyze(c); eq(GL, 'Her modelin sayısı ayrıdır (5 ve otomatik)', '5,4', [r.vehicles.conventional.n, r.vehicles.cv2.n].join(',')); const L = E.buildDay(r, r.config); eq(GL, 'Gün defteri araç sayısı = Σ elle/otomatik sayılar', 2 + 5 + 4, L.cars.length);
+  const m = L.modelsAt(L.endMin + 1); eqRel(GL, 'Elle sayıda gün sonu toplamı = motor günlük filo maliyeti', r.vehicles.conventional.fleet / 300, m[1].total, 0.00001); }
+{ const c = base(); c.fleet[1].count = 3; c.compare = { a: 'conventional', b: 'robovan' }; const r = E.analyze(c); truthy(GL, 'Başa baş sürücü maliyeti elle sayıda da hesaplanır (sürücülü araç A iken n/a değil mi: B sürücüsüz → n/a)', r.ok && r.kpi.breakEvenWage.status === 'n/a'); const c2 = base(); c2.fleet[1].count = 8; const r2 = E.analyze(c2); truthy(GL, 'Sürücü başa baş değeri araç sayısı değişince tutarlı', r2.ok && ['found', 'always', 'above-range'].includes(r2.kpi.breakEvenWage.status)); }
+
 /* ===== Rapor ===== */
 const groups = [...new Set(rows.map((r) => r.group))];
 let out = '';

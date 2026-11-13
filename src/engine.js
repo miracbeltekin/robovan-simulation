@@ -80,13 +80,16 @@ function operationMetrics(c, vc, sc) {
   };
 }
 
+/* aracın sabitlenmiş sayısı: kendi alanı (count > 0); yoksa eski senaryo alanı yalnız Robovan türünde; 0 = otomatik */
+function fleetOf(v, kind, scFleet) { return isNum(v.count) && v.count > 0 ? v.count : (kind === 'robo' ? scFleet : 0); }
+
 function calcFleet(cfg, oneWayKm, demand, fleetOverride) {
   const sc = cfg.scenario;
   const tripKm = oneWayKm * (sc.roundTrip ? 2 : 1);
   const out = {};
   cfg.fleet.forEach((v) => {
     const kind = CATEGORIES[v.category].kind;
-    const r = calcVehicle(kind, v.params, sc, tripKm, demand, kind === 'robo' ? fleetOverride : 0);
+    const r = calcVehicle(kind, v.params, sc, tripKm, demand, fleetOf(v, kind, fleetOverride));
     out[v.id] = Object.assign(r, { id: v.id, name: v.name, model: v.model, category: v.category, color: v.color });
   });
   return out;
@@ -112,8 +115,8 @@ function breakEvenWage(cfg, oneWayKm) {
   if (CATEGORIES[B.category].mode !== 'driver') return { value: null, status: 'n/a', label: 'Yalnız sürücülü taban araçta hesaplanır' };
   const tripKm = oneWayKm * (sc.roundTrip ? 2 : 1);
   const kA = CATEGORIES[A.category].kind, kB = CATEGORIES[B.category].kind;
-  const a = calcVehicle(kA, A.params, sc, tripKm, sc.demand, kA === 'robo' ? sc.fleet : 0);
-  const f = (w) => calcVehicle(kB, { ...B.params, driver: w }, sc, tripKm, sc.demand, kB === 'robo' ? sc.fleet : 0).fleet - a.fleet;
+  const a = calcVehicle(kA, A.params, sc, tripKm, sc.demand, fleetOf(A, kA, sc.fleet));
+  const f = (w) => calcVehicle(kB, { ...B.params, driver: w }, sc, tripKm, sc.demand, fleetOf(B, kB, sc.fleet)).fleet - a.fleet;
   const HI = 60000;
   if (f(0) > 0) return { value: 0, status: 'always', label: `${A.name} her maaşta daha ucuz` };
   if (f(HI) < 0) return { value: null, status: 'above-range', label: '60.000 üzerinde' };

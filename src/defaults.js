@@ -38,7 +38,8 @@ function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
 function makeVehicle(category, id, name, model, color, params) {
   const base = clone(PARAM_DEFAULTS[category]);
-  return { id, name, model: model === undefined ? CATEGORIES[category].model : model, category, color: color || PALETTE[category][0], params: Object.assign(base, params || {}) };
+  /* count: araç sayısı; 0 = otomatik (günlük sefere göre hesaplanır), >0 = elle sabitlenmiş */
+  return { id, name, model: model === undefined ? CATEGORIES[category].model : model, category, color: color || PALETTE[category][0], count: 0, params: Object.assign(base, params || {}) };
 }
 
 function defaultFleet() {

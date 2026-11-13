@@ -10,6 +10,7 @@ for (let i = 0; i < 400; i++) {
   const extra = Math.floor(u(0, 5));
   for (let k = 0; k < extra; k++) c.fleet.push(E.makeVehicle(R() > 0.5 ? 'robovan' : 'conventional', 'x' + k, 'Araç ' + k));
   c.fleet.forEach((v) => { Object.keys(v.params).forEach((f) => { v.params[f] *= u(0.5, 1.8); }); const p = v.params; p.residual = Math.min(p.residual, 90); if (p.eff) p.eff = Math.min(100, p.eff); p.hours = Math.min(24, p.hours); p.shiftH = Math.min(24, p.shiftH); p.life = Math.max(1, p.life); });
+  c.fleet.forEach((v) => { if (R() > 0.55) v.count = 1 + Math.floor(R() * 9); });
   const ids = c.fleet.map((v) => v.id); const a = ids[Math.floor(R() * ids.length)]; let b = ids[Math.floor(R() * ids.length)]; if (a === b) b = ids[(ids.indexOf(a) + 1) % ids.length]; c.compare = { a, b };
   const r = E.analyze(c); if (!r.ok) continue;
   const L = E.buildLive(r, r.config); const frac = u(0.05, 1.2);

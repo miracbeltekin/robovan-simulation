@@ -10,7 +10,7 @@ const LABEL = {
   l100: 'Yakıt tüketimi', fuel: 'Yakıt fiyatı', kwh100: 'Elektrik tüketimi', elec: 'Elektrik fiyatı', eff: 'Şarj verimi',
   chargeKw: 'Şarj gücü', range: 'Menzil', maint: 'Bakım', tire: 'Lastik', ins: 'Sigorta', tax: 'Vergi', lic: 'Lisans',
   driver: 'Sürücü maliyeti', operator: 'Operatör maliyeti', ratio: 'Operatör başına araç', shiftH: 'Vardiya süresi',
-  payload: 'Azami yük', speed: 'Ortalama hız', hours: 'Günlük çalışma süresi',
+  payload: 'Azami yük', speed: 'Ortalama hız', hours: 'Günlük çalışma süresi', count: 'Araç sayısı',
 };
 /* [min, max, minDahilMi] — min dahil değilse (>) olmalı */
 const SCENARIO_RULES = {
@@ -57,6 +57,7 @@ function validateConfig(cfg) {
     else if (ids[v.id]) errors.push(`${nm}: kimlik ${v.id} tekrar ediyor.`); else ids[v.id] = true;
     if (typeof v.name !== 'string' || !v.name.trim() || v.name.length > 40) errors.push(`Araç ${i + 1}: ad boş olmamalı ve en fazla 40 karakter olmalı.`);
     if (v.model !== undefined && (typeof v.model !== 'string' || v.model.length > 60)) errors.push(`${nm}: model en fazla 60 karakter olabilir.`);
+    if (v.count !== undefined && (!isNum(v.count) || v.count !== Math.floor(v.count) || v.count < 0 || v.count > 1000)) errors.push(`${nm} · Araç sayısı: 0 (otomatik) veya 1 ile 1000 arasında tam sayı olmalı.`);
     if (!CATEGORIES[v.category]) { errors.push(`${nm}: araç kategorisi geçersiz.`); return; }
     const pr = v.params || {};
     REQUIRED[v.category].forEach((f) => checkField(pr[f], VEHICLE_RULES[f], LABEL[f], errors, nm + ' · '));

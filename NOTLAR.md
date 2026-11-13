@@ -33,3 +33,9 @@ Referans site (heritage-b.club/lab/robotaxi) kaynak koduyla yeniden incelendi. F
 - **Neden bu sonuç?** kartı: km başına farkın hangi kalemden geldiği, tür sıralaması.
 - **Ya olursa?** çipleri: Dizel +%20, Sürücü +%30, Operatör başına 10 araç, Robovan fiyatı −%10; girdiğiniz değerler değişmez, ana senaryo ile karşılaştırma ve geri ödeme görünür.
 - Referansta olup bizde olmayanlar (bilinçli): gelir/kâr (bizde yalnız maliyet var), Three.js özel sahnesi (biz MapLibre kullanıyoruz), 7 günlük geçmiş grafiği, e-posta formu.
+
+## v0.8.1 — araç sayısı kolay düzenleme
+- Ana ekrandaki karar kartında her aracın başlığında [−] sayı [+]. Varsayılan "otomatik" (günlük sefere göre hesaplanır); [+]/[−] elle moda alır, "otomatiğe dön (N)" otomatiğe geri getirir.
+- Her model kendi sayısına sahiptir (`vehicle.count`, 0 = otomatik). Eski "Robovan sayısını sabitle" alanı kaldırıldı; eski kayıttaki değer Robovan araç sayısına taşınır.
+- Sayı talebi karşılamıyorsa kartta ve uyarılarda "yetmiyor, gereken N" görünür; hesap sürer. 1 ile 200 arası (motor 1000'e kadar).
+- Haritada her türden en çok 8 araç gösterilir; hesap, gün defteri ve HUD tüm araçları kapsar.
