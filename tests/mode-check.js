@@ -1,7 +1,7 @@
 /* 3D araç görünürlüğü: 3D / Üstten / Tüm rota / Aracı takip et modlarında iki araç da gerçek 3D geometriyle çiziliyor mu?
    Yöntem: araçlar gizlenip gizlenmeden alınan iki gerçek ekran görüntüsü arasındaki piksel farkı, aracın ekrandaki konumu çevresinde ölçülür. */
 const { chromium, devices } = require('playwright'); const H = require('./helpers'); const fs = require('fs');
-const url = 'file://' + process.argv[2], dir = process.argv[3] || '/tmp/mode'; fs.mkdirSync(dir, { recursive: true });
+const url = /^https?:/.test(process.argv[2]) ? process.argv[2] : 'file://' + process.argv[2], dir = process.argv[3] || '/tmp/mode'; fs.mkdirSync(dir, { recursive: true });
 const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n + (x ? ' — ' + x : ''));
 async function diffCount(px, a, b, boxes) {
   return px.evaluate(async ({ a, b, boxes }) => { const load = async (s) => { const i = new Image(); i.src = 'data:image/png;base64,' + s; await i.decode(); const c = document.createElement('canvas'); c.width = i.width; c.height = i.height; const g = c.getContext('2d'); g.drawImage(i, 0, 0); return g.getImageData(0, 0, c.width, c.height); };
