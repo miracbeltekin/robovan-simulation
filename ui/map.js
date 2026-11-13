@@ -138,6 +138,8 @@ M.init = function (opts) {
       if (!M.ready) { if (M.errCount >= 3) setState('error', 'Harita karoları alınamadı. İnternet bağlantısını kontrol edin.'); }
       else if (M.errCount === 3 && M.cb.onNotice) M.cb.onNotice('Bazı harita karoları yüklenemedi. Bağlantı yavaş veya servis meşgul olabilir.');
     });
+    var rafP = 0; function again() { if (rafP) return; rafP = requestAnimationFrame(function () { rafP = 0; placeVehicles(true); }); }   /* yakınlaştırma/kaydırma sırasında etiket yerleşimi ve ayrıntı düzeyi güncel kalır */
+    map.on('zoom', again); map.on('moveend', again); map.on('pitchend', again); map.on('rotateend', again);
     map.on('click', function (e) { if (M.addMode && M.cb.onMapClick) M.cb.onMapClick({ lon: e.lngLat.lng, lat: e.lngLat.lat }); });
     map.on('dragstart', function () { if (M.follow) { M.follow = false; if (M.cb.onFollow) M.cb.onFollow(false); } });
     return true;
@@ -232,41 +234,64 @@ function clearVehicles() {
 }
 /* vehicles: [{id,type,color,label,frac(0..1 sefer mesafe oranı),roundTrip}] — frac: sefer boyunca kat edilen yol oranı */
 M.setVehicles = function (vs) { M.vehicles = vs || []; placeVehicles(); };
-function placeVehicles() {
+function placeVehicles(noFollow) {
   if (!M.map || !M.ready) return;
   if (!M.vehicles.length || (!M.tl && !M.park)) { clearVehicles(); return; }
-  var tl = M.tl, n = M.vehicles.length, feats = [], list = [], keep = {};
+  var tl = M.tl, n = M.vehicles.length, feats = [], list = [], keep = {}, entries = [];
   M.vehicles.forEach(function (v, i) {
-    var p, b, d, dir, off = (i - (n - 1) / 2) * 4.4;   /* yalnız görsel yanal ayrım (m, model ölçeğinde); gerçek mesafe değişmez */
+    var p, b, d, dir, off = ((i % 3) - 1) * 3.6, offY = v.parked ? -Math.floor(i / 3) * 7.2 : 0;   /* yalnız görsel ayrım (m, model ölçeğinde: yanal ve park halinde arkaya sıralama); gerçek mesafe değişmez */
     if (tl) {
-      var f = Math.max(0, Math.min(1, v.frac));
+      var f = Math.max(0, Math.min(1, v.frac)); if (v.rev && !v.roundTrip) f = 1 - f;
       if (v.roundTrip) { if (f < 0.5) { d = 2 * f * tl.total; dir = 1; } else { d = (2 - 2 * f) * tl.total; dir = -1; } } else { d = f * tl.total; dir = 1; }
       p = lerpPos(tl, d); b = headingAt(tl, d, dir);
     } else { p = M.park.at; b = M.park.brg; }              /* rota yok: araçlar başlangıç noktasında park halinde (hareket yok) */
     var prev = M.hdg[v.id]; if (prev === undefined) prev = b; var dd = angDiff(prev, b); prev = Math.abs(dd) > 100 ? b : prev + dd * 0.35; M.hdg[v.id] = prev; b = (prev + 360) % 360;   /* dönüşlerde yumuşak yön geçişi */
     M.pos[v.id] = { lng: p[0], lat: p[1], brg: b };
-    list.push({ id: v.id, type: v.type, color: v.color, lng: p[0], lat: p[1], brg: b, off: off, spin: v.spin || 0 });
+    list.push({ id: v.id, type: v.type, color: v.color, lng: p[0], lat: p[1], brg: b, off: off, offY: offY, spin: v.spin || 0 });
     feats.push({ type: 'Feature', properties: { color: v.color }, geometry: { type: 'Point', coordinates: p } });
     keep[v.id] = 1;
     var lb = M.labels[v.id];
-    if (!lb) { var e = el('<div class="mk-label"><i></i><span></span></div>'); lb = M.labels[v.id] = new root.maplibregl.Marker({ element: e, anchor: 'bottom', offset: [0, -34 - i * 24] }).setLngLat(p).addTo(M.map); }
-    var vs = M.van && M.van.state().vehicles.filter(function (q) { return q.id === v.id; })[0], oy = -Math.max(34, (vs && vs.lenPx ? vs.lenPx * 0.55 : 0) + 16) - i * 24; if (lb._oy !== oy) { lb._oy = oy; lb.setOffset([0, oy]); }   /* etiket, büyüyen araç gövdesinin üstünde kalır */
-    lb.setLngLat(p); var e2 = lb.getElement(); e2.firstChild.style.background = v.color; e2.lastChild.textContent = v.label;
+    if (!lb) {
+      var e = el('<div class="mk-label"><i></i><b class="ln"></b><span class="lv"></span><em class="ls"></em></div>'); e.title = 'Ayrıntı için dokunun';
+      e.addEventListener('click', function (ev) { ev.stopPropagation(); if (M.cb.onCarClick) M.cb.onCarClick(v.id); });
+      lb = M.labels[v.id] = new root.maplibregl.Marker({ element: e, anchor: 'bottom', offset: [0, -34] }).setLngLat(p).addTo(M.map);
+    }
+    var vs = M.van && M.van.state().vehicles.filter(function (q) { return q.id === v.id; })[0], base = -Math.max(34, (vs && vs.lenPx ? vs.lenPx * 0.55 : 0) + 16);   /* etiket, büyüyen araç gövdesinin üstünde kalır */
+    lb.setLngLat(p); var e2 = lb.getElement(); e2.style.display = v.show === false ? 'none' : '';
+    e2.firstChild.style.background = v.color; e2.querySelector('.ln').textContent = v.name || v.label || ''; e2.querySelector('.lv').textContent = v.value || ''; e2.querySelector('.ls').textContent = v.status || '';
+    e2.classList.toggle('mini', M.map.getZoom() < 12); entries.push({ id: v.id, lb: lb, e2: e2, p: p, base: base, show: v.show !== false, pr: v.follow ? 0 : 1 });
+    e2.classList.toggle('good', v.tone === 'good'); e2.classList.toggle('bad', v.tone === 'bad'); e2.classList.toggle('sel', !!v.selected);
+    if (lb._bump !== undefined && lb._bump !== v.bump) { e2.classList.remove('bump'); void e2.offsetWidth; e2.classList.add('bump'); } lb._bump = v.bump;
+  });
+  function vsLen(id) { var q = M.van && M.van.state().vehicles.filter(function (v) { return v.id === id; })[0]; return q && q.lenPx ? q.lenPx : 46; }
+  /* etiket yerleşimi: ekranda üst üste binen etiketler yukarı doğru dizilir (çakışma yok) */
+  var placed = [];
+  entries.filter(function (x) { return x.show; }).map(function (x) { x.q = M.map.project(x.p); return x; }).sort(function (a, b) { return a.pr - b.pr || b.q.y - a.q.y; }).forEach(function (x) {   /* önce karşılaştırılan türlerin ilk araçları yerleşir */
+    var w = x.e2.offsetWidth || 120, h = (x.e2.offsetHeight || 26) + 4, oy = x.base, ox = 0, k, r, minTop = window.innerWidth < 900 ? 112 : 100, cand = [], best = null;
+    var dxs = [0], st = w / 2 + 3, mm; for (mm = 1; mm <= 8; mm++) { dxs.push(mm * st); dxs.push(-mm * st); }   /* yatay adaylar: araca yakından uzağa */
+    var ch = M.map.getContainer().clientHeight, maxBottom = ch - (window.innerWidth < 900 ? 150 : 24), below = (vsLen(x.id) * 0.4) + h;
+    for (k = 0; k < 6; k++) dxs.forEach(function (dx) { cand.push([dx, x.base - k * h]); });   /* önce yukarı, sonra yana kayarak: sütunlar halinde dizilir */
+    for (k = 0; k < 6; k++) dxs.forEach(function (dx) { cand.push([dx, below + k * h]); });   /* yukarıda yer yoksa aracın altına */
+    cand.some(function (c) { var rr = { l: x.q.x + c[0] - w / 2, r: x.q.x + c[0] + w / 2, t: x.q.y + c[1] - h, b: x.q.y + c[1] }; if (placed.some(function (o) { return !(rr.r <= o.l || o.r <= rr.l || rr.b <= o.t || o.b <= rr.t); })) return false; if (!best) best = { c: c, r: rr }; if (rr.t < minTop || rr.b > maxBottom || (window.innerWidth >= 900 && rr.l < 410 && rr.b > ch - 240) || rr.l < 0 || rr.r > M.map.getContainer().clientWidth) return false; best = { c: c, r: rr, valid: true }; return true; });
+    var fits = !!(best && best.valid); x.e2.style.display = fits ? '' : 'none';   /* sığacak yer yoksa etiket gizlenir (kontrollerin altında kalmaz); araç kartı ve panel yine erişilebilir */
+    if (!best) best = { c: [0, x.base], r: { l: x.q.x - w / 2, r: x.q.x + w / 2, t: x.q.y + x.base - h, b: x.q.y + x.base } };
+    ox = best.c[0]; oy = best.c[1]; r = best.r;
+    placed.push(r); if (x.lb._oy !== oy || x.lb._ox !== ox) { x.lb._oy = oy; x.lb._ox = ox; x.lb.setOffset([ox, oy]); }
   });
   Object.keys(M.labels).forEach(function (k) { if (!keep[k]) { M.labels[k].remove(); delete M.labels[k]; delete M.pos[k]; delete M.hdg[k]; } });
   if (M.van) M.van.setAll(list);
   var src = M.map.getSource('rv-van-pt'); if (src) src.setData({ type: 'FeatureCollection', features: feats });
-  if (M.follow && tl) followStep();
+  if (M.follow && tl && !noFollow) followStep();
 }
 function followCenter() {
-  var ps = M.vehicles.map(function (v) { return M.pos[v.id]; }).filter(Boolean);
+  var fl = M.vehicles.filter(function (v) { return v.follow; }), src = fl.length ? fl : M.vehicles, ps = src.map(function (v) { return M.pos[v.id]; }).filter(Boolean);
   if (!ps.length) { var c = M.tl.coords[0]; return { center: c, zoom: 15 }; }
   var lo = ps[0].lng, hi = ps[0].lng, la = ps[0].lat, lb = ps[0].lat; ps.forEach(function (p) { lo = Math.min(lo, p.lng); hi = Math.max(hi, p.lng); la = Math.min(la, p.lat); lb = Math.max(lb, p.lat); });
   var sep = hav([lo, la], [hi, lb]);
   return { center: [(lo + hi) / 2, (la + lb) / 2], zoom: Math.max(11.5, Math.min(16.6, 16.8 - Math.log2(Math.max(sep, 120) / 120))) };
 }
 function followStep() {
-  var c = followCenter(), lead = M.pos[M.vehicles[0].id], b = lead ? lead.brg : M.followB;
+  var c = followCenter(), lf = M.vehicles.filter(function (v) { return v.follow; })[0] || M.vehicles[0], lead = M.pos[lf.id], b = lead ? lead.brg : M.followB;
   M.followB += angDiff(M.followB, b) * 0.08; M.followZ += (c.zoom - M.followZ) * 0.08;
   M.map.jumpTo({ center: c.center, bearing: M.followB, zoom: M.followZ });
 }

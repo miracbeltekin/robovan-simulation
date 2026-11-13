@@ -99,15 +99,15 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   ok('C4 Hesap motoru gerçek yol mesafesini kullanıyor', await cp.evaluate(() => Math.abs(window.__last.route.km - 48.8987) < 0.01 && window.__last.route.source === 'road'));
   ok('C5 Güzergâh haritaya çizildi (road)', (await dbg()).routeFeatures.join() === 'road', JSON.stringify((await dbg()).routeFeatures));
   ok('C6 Durak işaretçileri (A, B) çizildi', (await cp.locator('.mk-stop').count()) === 2);
-  ok('C7 İki araçlı 3D katman eklendi, ana tarayıcıda tam model', d.hasVan && d.van && d.van.vehicles.length === 2 && d.van.simple === d.mobile, JSON.stringify(d.van));
+  ok('C7 İki araçlı 3D katman eklendi, ana tarayıcıda tam model', d.hasVan && d.van && d.van.vehicles.length >= 2 && d.van.simple === d.mobile, JSON.stringify(d.van));
   ok('C8 Kamyonet kısıtı uyarısı rota kartında', (await cp.textContent('#rcRes')).includes('kamyonet kısıtları'));
   ok('C9 Atıf görünür: OpenStreetMap, OpenFreeMap, OSRM, Photon', await cp.evaluate(() => { const a = document.querySelector('.maplibregl-ctrl-attrib'); const t = a ? a.innerText + a.textContent : ''; return !!a && a.offsetWidth > 0 && /OpenStreetMap/.test(t) && /OpenFreeMap/.test(t) && /OSRM/.test(t) && /Photon/.test(t); }));
   const km0 = await cp.evaluate(() => window.__last.vehicles.robovan.perKm); await cp.locator('[data-f="sl.demand"]').fill('12'); await cp.waitForTimeout(200);
   ok('C10 Parametre → sonuç güncellenir, rota korunur', (await cp.evaluate(() => window.__last.vehicles.robovan.perKm)) !== km0 && Math.abs((await cp.evaluate(() => window.__last.route.km)) - 48.8987) < 0.01);
   await cp.click('[data-sp="6"]'); await cp.click('#pp'); await cp.waitForTimeout(1500); const d1 = await dbg();
-  ok('C11 Animasyon: saat ilerliyor, araç görünür, konum değişiyor', (await cp.textContent('#clock')) !== '06:00' && d1.van.vehicles.length === 2 && d1.pos.robovan && d1.pos.robovan.lng !== 0, (await cp.textContent('#clock')) + ' ' + JSON.stringify(d1.pos));
-  await cp.waitForTimeout(800); const d2 = await dbg(); ok('C12 Araç rota üzerinde ilerliyor (doğu yönüne, yön ≈ 60–120°)', d2.pos.robovan.lng !== d1.pos.robovan.lng, JSON.stringify([d1.pos.robovan, d2.pos.robovan]));
-  const onRoute = await cp.evaluate(() => { const r = window.__app.routeInfo().coords, p = window.RobovanMap.debug().pos.robovan; let best = 1e9; for (let i = 1; i < r.length; i++) { const a = r[i - 1], b = r[i], dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((p.lng - a[0]) * dx + (p.lat - a[1]) * dy) / L)) : 0, qx = a[0] + t * dx, qy = a[1] + t * dy; const m = Math.hypot((p.lng - qx) * 84000, (p.lat - qy) * 111000); if (m < best) best = m; } return best; });
+  ok('C11 Animasyon: saat ilerliyor, araç görünür, konum değişiyor', (await cp.textContent('#clock')) !== '06:00' && d1.van.vehicles.length >= 2 && d1.pos['robovan:0'] && d1.pos['robovan:0'].lng !== 0, (await cp.textContent('#clock')) + ' ' + JSON.stringify(d1.pos));
+  await cp.waitForTimeout(800); const d2 = await dbg(); ok('C12 Araç rota üzerinde ilerliyor (doğu yönüne, yön ≈ 60–120°)', d2.pos['robovan:0'].lng !== d1.pos['robovan:0'].lng, JSON.stringify([d1.pos['robovan:0'], d2.pos['robovan:0']]));
+  const onRoute = await cp.evaluate(() => { const r = window.__app.routeInfo().coords, p = window.RobovanMap.debug().pos['robovan:0']; let best = 1e9; for (let i = 1; i < r.length; i++) { const a = r[i - 1], b = r[i], dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((p.lng - a[0]) * dx + (p.lat - a[1]) * dy) / L)) : 0, qx = a[0] + t * dx, qy = a[1] + t * dy; const m = Math.hypot((p.lng - qx) * 84000, (p.lat - qy) * 111000); if (m < best) best = m; } return best; });
   ok('C13 Araç konumu rota çizgisinin üzerinde (≤ 5 m)', onRoute < 5, onRoute.toFixed(2) + ' m');
   await cp.click('#pp'); ok('C14 Duraklat', (await cp.textContent('#pp')) === '▶');
   await cp.locator('#tl').evaluate(el => { el.value = 500; el.dispatchEvent(new Event('input', { bubbles: true })); }); ok('C15 İlerleme çubuğu aracı sürükler', (await cp.textContent('#tlTxt')).includes('Simülasyon'));
@@ -115,7 +115,7 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   await cp.click('[data-view="3d"]'); await cp.waitForTimeout(1300); ok('C17 3D görünüm: eğim ≥ 55°', (await dbg()).pitch >= 55);
   await cp.click('[data-view="fit"]'); await cp.waitForTimeout(1500); ok('C18 Tüm rota sığdırma çalışıyor', (await dbg()).zoom > 6);
   await cp.click('#followBtn'); await cp.click('#pp'); await cp.waitForTimeout(1200); const z1 = await dbg(); await cp.click('#pp'); await cp.click('#followBtn');
-  ok('C19 Aracı takip: kamera araca bakıyor', await cp.evaluate(() => { const m = window.RobovanMap.debug(); return !!m.pos.robovan; }));
+  ok('C19 Aracı takip: kamera araca bakıyor', await cp.evaluate(() => { const m = window.RobovanMap.debug(); return !!m.pos['robovan:0']; }));
   await cp.evaluate(() => window.RobovanMap.setSimpleVan(true)); await cp.waitForTimeout(300); ok('C20 Sade araç görünümüne geçiş sorunsuz', (await dbg()).van.simple === true && cerr.length === 0, cerr.join(';'));
   await cp.evaluate(() => window.RobovanMap.setSimpleVan(false));
   /* bina verisi olmayan bölge: harita sorunsuz */
@@ -161,14 +161,14 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   const st3 = { mode: 'all-down' }; const ectx = await b.newContext({ viewport: { width: 1440, height: 900 } }); await H.stubServices(ectx, st3);
   const ep = await ectx.newPage(); await ep.goto(url); await H.waitMap(ep); await ep.waitForTimeout(6000);
   const e0 = await ep.textContent('#rcRes'); const d0 = await ep.evaluate(() => window.RobovanMap.debug());
-  ok('D2a Servis kapalı + varsayılan rota: DEMO rota rozeti, araçlar haritada ve hareket edebilir', e0.includes('DEMO') && !e0.includes('Gerçek karayolu') && d0.van.vehicles.length === 2 && (await ep.isEnabled('#pp')) && (await ep.textContent('#tlTxt')).includes('DEMO'), e0.slice(0, 100));
+  ok('D2a Servis kapalı + varsayılan rota: DEMO rota rozeti, araçlar haritada ve hareket edebilir', e0.includes('DEMO') && !e0.includes('Gerçek karayolu') && d0.van.vehicles.length >= 2 && (await ep.isEnabled('#pp')) && (await ep.textContent('#tlTxt')).includes('DEMO'), e0.slice(0, 100));
   ok('D2b DEMO uyarısı görünür', (await ep.textContent('#warns')).includes('DEMO'));
-  await ep.evaluate(() => window.__app.setSim(80)); await ep.waitForTimeout(400); const mv = await ep.evaluate(() => window.RobovanMap.debug().pos); ok('D2c DEMO rotada araçlar başlangıçtan ayrılıyor', Math.hypot(mv.robovan.lng - 29.4307, mv.robovan.lat - 40.8028) > 0.05, JSON.stringify(mv.robovan));
+  await ep.evaluate(() => window.__app.setSim(80)); await ep.waitForTimeout(400); const mv = await ep.evaluate(() => window.RobovanMap.debug().pos); ok('D2c DEMO rotada araçlar başlangıçtan ayrılıyor', Math.hypot(mv['robovan:0'].lng - 29.4307, mv['robovan:0'].lat - 40.8028) > 0.05, JSON.stringify(mv['robovan:0']));
   if ((await ep.getAttribute('#rcToggle', 'aria-expanded')) !== 'true') await ep.click('#rcToggle'); await ep.click('#presets [data-preset="1"]'); await ep.waitForTimeout(5000);
   const e1 = await ep.textContent('#rcRes'); const dd = await ep.evaluate(() => window.RobovanMap.debug());
   ok('D2 Başka rota + iki servis kapalı: "tahmin" rozeti, gerçek yol gibi gösterilmez', e1.includes('Tahmin') && !e1.includes('Gerçek karayolu') && !e1.includes('DEMO'), e1.slice(0, 120));
   ok('D3 Rota yoksa kesikli kuş uçuşu çizgisi ve uyarı', dd.routeFeatures.join() === 'air' && (await ep.textContent('#warns')).includes('Karayolu rotası hesaplanamadı'), JSON.stringify(dd.routeFeatures));
-  ok('D4 Rota yoksa araçlar KAYBOLMAZ: başlangıçta park halinde görünür; hareket kapalı ve nedeni yazar', dd.van.vehicles.length === 2 && dd.planned === false && (await ep.isDisabled('#pp')) && (await ep.textContent('#tlTxt')).includes('park halinde') && (await ep.textContent('#hudSt')) === 'Park halinde' && (await ep.textContent('.mk-label')).includes('park halinde'), await ep.textContent('#tlTxt'));
+  ok('D4 Rota yoksa araçlar KAYBOLMAZ: başlangıçta park halinde görünür; hareket kapalı ve nedeni yazar', dd.van.vehicles.length >= 2 && dd.planned === false && (await ep.isDisabled('#pp')) && (await ep.textContent('#tlTxt')).includes('park halinde') && (await ep.textContent('#hudSt')) === 'Park halinde' && (await ep.textContent('.mk-label')).includes('park halinde'), await ep.textContent('#tlTxt'));
   ok('D5 Servis yokken hesap motoru sürüyor (tahmin km ile)', (await ep.evaluate(() => window.__last.route.source)) === 'air' && (await ep.textContent('#rBig')).includes('$'));
   ok('D6 Rota denemeleri sınırlı (rota başına her sağlayıcıya tek istek)', st3.osrm.length === 2 && st3.fossgis.length === 2, `${st3.osrm.length}/${st3.fossgis.length}`);
   await ectx.close();

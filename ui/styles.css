@@ -75,7 +75,10 @@ button:disabled{cursor:not-allowed}
 .msrow{display:flex;gap:var(--s1);flex-wrap:wrap}
 .mapnote{position:absolute;left:var(--s2);bottom:var(--s1);max-width:calc(100% - 520px);font-size:12px;color:var(--muted);z-index:1;pointer-events:none}.mapnote b{color:var(--ink);font-weight:500}
 .mk-stop{width:26px;height:26px;border-radius:50%;background:var(--robo);color:#04201C;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font:600 12px var(--font);box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:grab}
-.mk-label{display:flex;align-items:center;gap:6px;background:rgba(17,19,23,.92);color:#F3F4F6;border:1px solid #323743;border-radius:8px;padding:4px 10px;font:500 13px var(--font);white-space:nowrap}.mk-label i{width:9px;height:9px;border-radius:50%;flex:none}
+.mk-label{display:flex;align-items:center;gap:8px;background:rgba(17,19,23,.94);color:#F3F4F6;border:1px solid #323743;border-radius:10px;padding:5px 12px;font:500 13px var(--font);white-space:nowrap;cursor:pointer}.mk-label i{width:9px;height:9px;border-radius:50%;flex:none}
+.mk-label .lv{font-weight:600;font-variant-numeric:tabular-nums}.mk-label .ls{font-style:normal;color:var(--muted);font-size:12px}
+.mk-label.mini .ln,.mk-label.mini .ls{display:none}.mk-label{height:30px;line-height:1}.mk-label.mini{height:24px;padding:0 8px;font-size:12px;gap:6px;border-radius:8px}.mk-label.mini i{width:8px;height:8px}.mk-label.good .lv{color:var(--good)}.mk-label.bad .lv{color:var(--bad)}.mk-label.sel{border-color:var(--cream)}
+@keyframes bump{0%{scale:1}35%{scale:1.16}100%{scale:1}}.mk-label.bump{animation:bump .5s var(--ease)}
 
 /* kartlar */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px var(--s3);min-width:0}
@@ -287,6 +290,23 @@ td.strong{font-weight:600}
 .distnote{font-size:13.5px;color:var(--muted);margin-top:var(--s2);padding:12px 16px;border:1px dashed var(--line2);border-radius:var(--r-sm)}
 .shpanel{display:flex;flex-direction:column;gap:var(--s2)}
 
+/* araç ayrıntı kartı, neden kartı, what-if çipleri */
+.carcard{position:absolute;right:64px;top:64px;width:300px;z-index:5;padding:16px 20px;background:rgba(21,24,29,.96);backdrop-filter:blur(10px);border-top:3px solid var(--c,var(--robo))}
+.cc-h{display:flex;gap:12px;align-items:flex-start}.cc-h i{width:12px;height:12px;border-radius:50%;background:var(--c);margin-top:7px;flex:none}.cc-h>div{flex:1;min-width:0}.cc-h b{display:block;font-size:16px;font-weight:600}.cc-h span{font-size:12.5px;color:var(--muted)}
+.cc-h .iconx{width:36px;height:36px}
+.cc-big{font-size:30px;font-weight:600;letter-spacing:-.02em;margin:10px 0 8px}.cc-big small{display:block;font-size:12.5px;font-weight:400;color:var(--muted);letter-spacing:0}
+.cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;border-top:1px solid var(--line);padding-top:12px}.cc-grid span{display:block;font-size:12px;color:var(--faint)}.cc-grid b{font-size:14px;font-weight:600}
+.cc-items{display:flex;flex-direction:column;gap:8px;margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.ci{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:13px;align-items:center}.ci span{color:var(--muted);display:flex;align-items:center;gap:6px}.ci span i{width:8px;height:8px;border-radius:2px;display:inline-block}.ci b{font-weight:600}.ci u{grid-column:1/-1;display:block;height:3px;border-radius:2px;text-decoration:none;min-width:0}
+.why-head{font-size:14px;margin-bottom:12px;line-height:1.45}
+.wy{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:13.5px}.wy span{color:var(--muted)}.wy b{font-weight:600;text-align:right}.wy b.good{color:var(--good)}.wy b.bad{color:var(--bad)}
+.why-rank{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-size:13px;color:var(--muted)}.why-rank .rk{display:inline-flex;align-items:center}.why-rank .rk i{display:inline-flex;width:20px;height:20px;border-radius:50%;align-items:center;justify-content:center;color:#0B0D12;font-style:normal;font-size:12px;font-weight:600;margin-right:6px}.why-rank .rk b{color:var(--ink);font-weight:600;margin-left:4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{min-height:40px;border-radius:99px;border:1px solid var(--line2);background:transparent;color:var(--muted);padding:0 14px;font-size:13.5px;transition:all .15s var(--ease)}
+.chips button:hover{color:var(--ink);border-color:var(--faint)}
+.chips button[aria-pressed="true"]{background:var(--cream);color:var(--cream-ink);border-color:var(--cream);font-weight:500}
+.wi-res{margin-top:var(--s2)}
+
 /* geniş ekran: 1280+ ; orta ekran: panel daralır */
 @media(max-width:1100px){.console{grid-template-columns:minmax(0,1fr) 340px;padding-inline:16px}.top{padding-inline:16px}.routechip{display:none}.timeline{width:calc(100% - 32px);bottom:44px}.hud{bottom:136px}.routecard{bottom:350px}.mapnote{display:none}}
 
@@ -307,6 +327,7 @@ td.strong{font-weight:600}
   .mc{flex:none;height:40px}
   .mapcard .maplibregl-ctrl-top-right{top:64px;right:4px}
   .mapnote,.timeline{display:none}
+  .carcard{left:var(--s1);right:var(--s1);top:auto;bottom:36px;width:auto;padding:10px 16px}.cc-h span{display:none}.cc-h b{font-size:15px}.cc-h .iconx{width:36px;height:36px}.cc-big{font-size:22px;margin:2px 0 6px}.cc-big small{display:inline;margin-left:8px}.cc-grid{grid-template-columns:repeat(3,1fr);gap:4px 8px;padding-top:8px}.cc-grid>div:nth-child(n+4){display:none}.cc-items{display:none}.mapcard.car-open .hud{display:none}
   .mapstate{padding:var(--s2);align-items:flex-end;padding-bottom:96px}
   .msbox{padding:16px;gap:8px}.msbox b{font-size:16px}.msbox p{font-size:13px}.msbox p.small{display:none}
   .hud{left:var(--s1);right:var(--s1);width:auto;bottom:40px;padding:8px 12px 10px;border-radius:12px}

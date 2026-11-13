@@ -38,7 +38,11 @@ npm run test:ui          # arayüz testleri (ui-check, 2, 3, 4) (Playwright; int
 npm run test:render      # ekran görüntüleri (shots/)
 ```
 
-## Canlı simülasyon
+## Canlı simülasyon (tüm gün, filo)
+- Her araç 06:00'dan başlayarak kendi seferlerini art arda yapar; haritada her aracın üstünde bugünkü maliyet ve durum yazar. Araç etiketine dokunmak ayrıntı kartını açar.
+- Gün sonunda tür bazında toplam, motorun günlük filo maliyetine (yıllık ÷ çalışma günü) eşittir.
+- Eski tek sefer anlatımı (aşağıdaki kurallar) hâlâ geçerlidir; yalnızca birikim artık bütün seferler boyunca sürer.
+
 - Saat 06:00'da başlar. ×1 = 1 simülasyon dakikası / gerçek saniye, ×3 = 3, ×6 = 6. Oynat, duraklat, devam, sıfırla çalışır.
 - Hız çarpanı yalnızca zamanın akışını değiştirir; aynı operasyonun toplam maliyeti değişmez.
 - Her aracın kendi hızı, durak beklemesi ve tüketim/maliyet parametresi vardır. Konum, km, elektrik/dizel tüketimi ve biriken maliyet `src/live.js` defterinden gelir.

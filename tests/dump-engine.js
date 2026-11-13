@@ -17,6 +17,7 @@ for (let i = 0; i < 400; i++) {
   const mid = L.at(L.endMin * frac), end = L.at(L.endMin);
   c.fleet.forEach((fv, j) => { const v = r.vehicles[fv.id]; o.res[fv.id] = { n: v.n, tripH: v.tripH, kmv: v.kmv, energy: v.energy, maint: v.maint, fixed: v.fixed, people: v.people, dep: v.dep, fin: v.fin, total: v.total, fleet: v.fleet, perKm: v.perKm, perTrip: v.perTrip, perTonKm: v.perTonKm, tco: v.tco(c.scenario.horizon), cum5: v.cumulative(5), staff: v.ops.staff, energyQty: v.ops.energyQty };
     o.live[fv.id] = { frac, midTotal: mid[j].total, midKm: mid[j].km, endTotal: end[j].total, endKm: end[j].km, midQty: mid[j].energyQty, endMin: L.items[j].sched.totalMin }; });
+  { const D = E.buildDay(r, r.config), ts = [0.07, 0.31, 0.52, 0.88, 1.1].map((f) => f * D.endMin); o.day = { end: D.endMin, ts, cars: ts.map((t) => D.at(t).map((x) => ({ id: x.id, total: x.total, km: x.km, done: x.tripsDone, qty: x.energyQty }))), models: ts.map((t) => D.modelsAt(t).map((x) => ({ id: x.id, total: x.total, km: x.km, done: x.tripsDone }))), events: D.events(-1, D.endMin + 1).length }; }
   o.kpi = { saving: r.kpi.annualSaving, be: r.kpi.breakEven.years, tcoSaving: r.kpi.tcoSaving, a, b };
   out.push(o);
 }

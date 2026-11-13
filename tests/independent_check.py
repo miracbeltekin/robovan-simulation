@@ -36,7 +36,7 @@ def calc(kind, v, sc, route_km, D, fleet_override):
     return dict(n=n, tripH=t_trip, kmv=kmv, energy=energy, maint=maint, fixed=fixed, people=people, dep=dep, fin=fin, total=total,
                 fleet=total * n, perKm=total / kmv, perTrip=total / trips, perTonKm=total / tonkm,
                 tco=n * (capex + cash * H) - n * resH, cum5=n * (capex + cash * 5), staff=staff, energyQty=eq,
-                _capex=n * capex, _cash=n * cash)
+                _capex=n * capex, _cash=n * cash, _trips=trips)
 
 KIND = {'robovan': 'robo', 'conventional': 'ice'}
 bad = 0; checks = 0; worst = 0.0
@@ -68,6 +68,61 @@ for i, o in enumerate(data):
         if L['frac'] >= 1:
             checks += 1
             if abs(L['midTotal'] - m['perTrip']) > 1e-9 * max(1, m['perTrip']): bad += 1; print('FARK kırpma', i, k)
+
+    # ---- bağımsız tüm gün defteri: sefer dağılımı, çizelge, birikim (Python'da sıfırdan) ----
+    def sched(v, kind, vp):
+        trip_km = km * (2 if sc['roundTrip'] else 1)
+        drive_min = trip_km / vp['speed'] * 60; legs = int(sc['stops']) + 1; segs = []
+        for j in range(legs):
+            segs.append(('d', drive_min / legs, trip_km / legs))
+            if j < int(sc['stops']) and sc['loadMin'] > 0: segs.append(('w', sc['loadMin'], 0))
+        if kind == 'robo':
+            ch = (trip_km * vp['kwh100'] / 100) / vp['chargeKw'] * 60
+            if ch > 0: segs.append(('c', ch, 0))
+        return segs, sum(s[1] for s in segs), trip_km
+    def trip_state(m, kind, segs, total, trip_km, t):
+        t = min(max(t, 0), total); acc = 0; kmx = 0
+        for ph, mn, kk in segs:
+            if t <= acc + mn + 1e-12:
+                f = (t - acc) / mn if mn > 0 else 1; kmx += kk * f; break
+            acc += mn; kmx += kk
+        trips = m['fleet'] / m['n'] / m['perTrip'] if False else None
+        return kmx, t / total if total > 0 else 1
+    D = sc['demand']; whole = math.floor(D + 1e-9); frac = D - whole
+    cars = []
+    for v in c['fleet']:
+        kind = KIND[v['category']]; m = mine[v['id']]; n = m['n']; per = whole // n; extra = whole % n
+        segs, total, trip_km = sched(v, kind, v['params'])
+        trips_per_year = m['_trips']
+        for k in range(n):
+            cnt = per + (1 if k < extra else 0); tr = [1.0] * cnt
+            if frac > 1e-9 and k == extra % n: tr.append(frac)
+            start = min(k * 20, 240)
+            cars.append(dict(id=v['id'] + ':' + str(k), mid=v['id'], kind=kind, vp=v['params'], m=m, segs=segs, total=total, trip_km=trip_km, trips=tr, start=start))
+    for si, t in enumerate(o['day']['ts']):
+        mt = {}
+        for car in cars:
+            m = car['m']; per_trip = m['total'] / m['_trips']; el = t - car['start']; cost = 0.0; kmv = 0.0; done = 0; acc = 0
+            if el > 0:
+                for w in car['trips']:
+                    d = w * car['total']
+                    if el >= acc + d - 1e-9: cost += per_trip * w; kmv += car['trip_km'] * w; done += 1; acc += d; continue
+                    f = (el - acc) / w; kk, tf = trip_state(m, car['kind'], car['segs'], car['total'], car['trip_km'], f)
+                    kmf = kk / car['trip_km'] if car['trip_km'] > 0 else 1
+                    # mesafe payı: enerji+bakım; zaman payı: kalanlar
+                    var = (m['energy'] + m['maint']) / m['_trips']; tim = (m['total'] - m['energy'] - m['maint']) / m['_trips']
+                    cost += (var * kmf + tim * tf) * w; kmv += kk * w; break
+            ex = next(x for x in o['day']['cars'][si] if x['id'] == car['id']); checks += 3
+            for key, mv in (('total', cost), ('km', kmv), ('done', done)):
+                if abs(mv - ex[key]) > 1e-8 * max(1, abs(mv)): bad += 1; print('FARK gün', i, car['id'], key, si, mv, ex[key])
+            mt[car['mid']] = mt.get(car['mid'], 0.0) + cost
+        for mm in o['day']['models'][si]:
+            checks += 1
+            if abs(mt[mm['id']] - mm['total']) > 1e-8 * max(1, abs(mt[mm['id']])): bad += 1; print('FARK gün model', i, mm['id'], si)
+    for v in c['fleet']:
+        m = mine[v['id']]; checks += 1
+        endm = [mm for mm in o['day']['models'][-1] if mm['id'] == v['id']][0]['total']; daily = m['fleet'] / sc['days']
+        if abs(endm - daily) > 1e-8 * max(1, abs(daily)): bad += 1; print('FARK gün sonu', i, v['id'], endm, daily)
     a, b = c['compare']['a'], c['compare']['b']
     saving = mine[b]['fleet'] - mine[a]['fleet']; checks += 1
     if abs(saving - o['kpi']['saving']) > 1e-6 * max(1, abs(saving)): bad += 1; print('FARK tasarruf', i)

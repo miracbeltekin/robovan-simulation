@@ -208,6 +208,30 @@ const GJ = 'Kayıt taşıma';
 { const m = E.migrate(base()); truthy(GJ, 'Zaten yeni biçimdeki kayıt aynen kalır', JSON.stringify(m.cfg) === JSON.stringify(base()));
   truthy(GJ, 'Bozuk kayıt varsayılana düşer', E.migrate('x').cfg.fleet.length === 2 && E.migrate(null).cfg.fleet.length === 2); }
 
+/* ===== K. Tüm gün, filo olarak (günlük çok seferli defter) ===== */
+const GK = 'Tüm gün defteri';
+function dayCfgs() { const out = []; const mk = (f) => { const c = base(); f(c); return c; };
+  out.push(base()); out.push(mk((c) => { c.scenario.demand = 7; })); out.push(mk((c) => { c.scenario.demand = 8.5; })); out.push(mk((c) => { c.scenario.fleet = 5; c.scenario.demand = 3; })); out.push(mk((c) => { c.scenario.roundTrip = false; c.scenario.demand = 9; }));
+  out.push(mk((c) => { c.scenario.stops = 0; c.scenario.loadMin = 0; c.scenario.demand = 12; })); out.push(mk((c) => { c.route.mode = 'manual'; c.route.manualKm = 12; c.scenario.demand = 30; }));
+  out.push(mk((c) => { c.fleet.push(E.makeVehicle('robovan', 'rv2', 'Robovan Pro', 'X', '#5BD6F2', { speed: 55 })); c.fleet.push(E.makeVehicle('conventional', 'cv2', 'Van 2', 'Y', '#E0B040', { l100: 11 })); c.scenario.demand = 11; })); return out; }
+dayCfgs().forEach((c, i) => {
+  const r = E.analyze(c); if (!r.ok) { truthy(GK, `Senaryo ${i + 1} geçerli`, false, r.errors.join(';')); return; }
+  const L = E.buildDay(r, r.config);
+  const m = L.modelsAt(L.endMin + 1);
+  r.order.forEach((id, j) => { eqRel(GK, `S${i + 1} ${id}: gün sonu filo maliyeti = motor günlük filo maliyeti (yıllık ÷ gün)`, r.vehicles[id].fleet / c.scenario.days, m[j].total, 0.00001); });
+  r.order.forEach((id, j) => { eq(GK, `S${i + 1} ${id}: günlük sefer sayısı = talep (ondalık kalan kısmi sefer)`, Math.ceil(c.scenario.demand - 1e-9), m[j].tripsTotal); });
+  eq(GK, `S${i + 1}: araç sayısı = Σ filo`, r.order.reduce((a, id) => a + r.vehicles[id].n, 0), L.cars.length);
+  let mono = true, prev = null; for (let k = 0; k <= 40; k++) { const t = L.endMin * k / 40, mm = L.modelsAt(t); if (prev) mm.forEach((x, j) => { if (x.total < prev[j].total - 1e-9 || x.km < prev[j].km - 1e-9) mono = false; }); prev = mm; }
+  truthy(GK, `S${i + 1}: maliyet ve km zamanla azalmaz`, mono);
+  const z = L.modelsAt(0); truthy(GK, `S${i + 1}: 06:00'da hepsi 0`, z.every((x) => x.total === 0 && x.km === 0 && x.tripsDone === 0));
+  const ev = L.events(-1, L.endMin + 1); eq(GK, `S${i + 1}: sefer bitiş olayı sayısı = tamamlanan sefer`, ev.length, m.reduce((a, x) => a + x.tripsDone, 0));
+  truthy(GK, `S${i + 1}: konum oranları 0..1`, L.cars.every((car) => { const s = L.at(L.endMin * 0.37).filter((q) => q.id === car.id)[0]; return s.posFrac >= 0 && s.posFrac <= 1; }));
+  truthy(GK, `S${i + 1}: JSON'da NaN/Infinity yok`, !/NaN|Infinity/.test(JSON.stringify(L.modelsAt(L.endMin * 0.5))));
+});
+{ const r = E.analyze(base()); const L = E.buildDay(r, r.config);
+  const b = L.at(10); truthy(GK, '10. dakikada ilk araç yolda, ikinci araç bekliyor', b.filter((x) => x.modelId === 'robovan')[0].phase !== 'wait' && b.filter((x) => x.modelId === 'robovan')[1].phase === 'wait');
+  const end = L.at(L.endMin + 5); truthy(GK, 'Gün sonunda araçlar "tamam" ve başlangıçta park', end.every((x) => x.done && x.posFrac === 1)); }
+
 /* ===== Rapor ===== */
 const groups = [...new Set(rows.map((r) => r.group))];
 let out = '';

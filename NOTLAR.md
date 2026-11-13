@@ -23,3 +23,13 @@
 - Kameranın kalıcı boşluğu (`ui/map.js` `pad()`): araçlar canlı panel, rota kartı ve düğmelerin altında kalmaz.
 - Etiketler büyüyen araç gövdesinin üstünde durur.
 - Yeni test: `tests/mode-check.js` (gerçek tarayıcıda araç gizle/göster piksel farkı, her mod, masaüstü + mobil, yakın görünüm detayı).
+
+## v0.8.0 — referans mantığına yaklaşma (tüm gün, filo; araç etiketinde canlı maliyet)
+Referans site (heritage-b.club/lab/robotaxi) kaynak koduyla yeniden incelendi. Farklar ve yapılanlar:
+- **Etiket:** Referansta her aracın üstünde "bugünkü net + durum" vardır ve her olayda zıplar. Bizde de her aracın üstünde canlı maliyet ($) ve durum var; tutar artarken sefer bitince etiket zıplar; ucuz olan tür yeşil, pahalı olan kırmızı. Uzak görünümde etiketler kompakt (renk + tutar), yakında ad + tutar + durum.
+- **Tüm gün, filo:** Tek sefer yerine 06:00'dan günün sonuna kadar her araç kendi seferlerini art arda yapar (araç sayısı kadar araç). Gün sonunda tür bazında toplam = motorun günlük filo maliyeti (yıllık ÷ çalışma günü); bağımsız Python doğrulaması bunu da kontrol eder (`src/live.js` `buildDay`).
+- **Sefer sonu bildirimi:** Biten seferin maliyeti ve karşı türün aynı sefer maliyeti haritanın üstünde görünür.
+- **Araç kartı:** Araç etiketine dokunun: bugünkü maliyet, yol, tüketim, km maliyeti, 5 maliyet kalemi.
+- **Neden bu sonuç?** kartı: km başına farkın hangi kalemden geldiği, tür sıralaması.
+- **Ya olursa?** çipleri: Dizel +%20, Sürücü +%30, Operatör başına 10 araç, Robovan fiyatı −%10; girdiğiniz değerler değişmez, ana senaryo ile karşılaştırma ve geri ödeme görünür.
+- Referansta olup bizde olmayanlar (bilinçli): gelir/kâr (bizde yalnız maliyet var), Three.js özel sahnesi (biz MapLibre kullanıyoruz), 7 günlük geçmiş grafiği, e-posta formu.

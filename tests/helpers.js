@@ -16,6 +16,6 @@ async function stubServices(ctx, st = {}) {
 async function blockAllExternal(ctx, seen = []) { await ctx.route('**/*', (r) => { const u = r.request().url(); if (isExt(u)) { try { seen.push(new URL(u).host); } catch (e) {} return r.abort('failed'); } r.continue(); }); return seen; }
 async function waitMap(p, state = 'ready', ms = 45000) { await p.waitForFunction((s) => window.RobovanMap && window.RobovanMap.debug().state === s, state, { timeout: ms }); }
 /* gerçek karayolu rotası geldi ve araçlar haritaya konuldu */
-async function waitPlan(p, ms = 20000) { await p.waitForFunction(() => !document.getElementById('pp').disabled && window.RobovanMap.hasRoute() && window.RobovanMap.debug().van && window.RobovanMap.debug().van.vehicles.length === 2, null, { timeout: ms }); }
+async function waitPlan(p, ms = 20000) { await p.waitForFunction(() => !document.getElementById('pp').disabled && window.RobovanMap.hasRoute() && window.RobovanMap.debug().van && window.RobovanMap.debug().van.vehicles.length >= 2, null, { timeout: ms }); }
 const ARGS = ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'];
 module.exports = { stubServices, blockAllExternal, waitMap, waitPlan, ARGS, ALLOWED, isExt, OSRM, PHOTON };

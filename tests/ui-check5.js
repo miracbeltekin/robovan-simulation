@@ -9,11 +9,11 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } }); await H.stubServices(ctx);
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|net::/.test(m.text())) errs.push(m.text()); });
   await p.goto(url); await H.waitMap(p); await H.waitPlan(p);
-  ok('N1 Oynat\'a basmadan iki araç haritada (başlangıç noktasında, hareketsiz)', await p.evaluate(() => { const s = window.RobovanMap.debug(); return s.van.vehicles.length === 2 && window.__app.sim().t === 0 && !window.__app.sim().playing; }));
+  ok('N1 Oynat\'a basmadan araçlar haritada (iki tür) (başlangıç noktasında, hareketsiz)', await p.evaluate(() => { const s = window.RobovanMap.debug(); return s.van.vehicles.length >= 2 && window.__app.sim().t === 0 && !window.__app.sim().playing; }));
   const shot = async (id, zoom, pitch, rel) => {
-    await p.evaluate(({ id, zoom, pitch }) => { const a = window.RobovanMap.debug().pos[id]; window.RobovanMap.map.jumpTo({ center: [a.lng, a.lat], zoom, pitch, bearing: a.brg + 160 }); }, { id, zoom, pitch });
+    await p.evaluate(({ id, zoom, pitch }) => { const a = window.RobovanMap.debug().pos[id + ':0']; window.RobovanMap.map.jumpTo({ center: [a.lng, a.lat], zoom, pitch, bearing: a.brg + 160 }); }, { id, zoom, pitch });
     await p.waitForTimeout(9000);
-    const pt = await p.evaluate((id) => { const m = window.RobovanMap.map, a = window.RobovanMap.debug().pos[id], q = m.project([a.lng, a.lat]), r = m.getContainer().getBoundingClientRect(); return { x: r.left + q.x, y: r.top + q.y }; }, id);
+    const pt = await p.evaluate((id) => { const m = window.RobovanMap.map, a = window.RobovanMap.debug().pos[id + ':0'], q = m.project([a.lng, a.lat]), r = m.getContainer().getBoundingClientRect(); return { x: r.left + q.x, y: r.top + q.y }; }, id);
     const clip = { x: Math.max(0, pt.x - 120), y: Math.max(0, pt.y - 140), width: 240, height: 200 };
     const buf = await p.screenshot({ clip }); const c = await px.evaluate(async (b64) => { const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode(); const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height; const g = cv.getContext('2d'); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, cv.width, cv.height).data; let white = 0, orange = 0, teal = 0; for (let i = 0; i < d.length; i += 4) { const r = d[i], gg = d[i + 1], bb = d[i + 2]; if (r > 190 && gg > 190 && bb > 190) white++; else if (r > 190 && gg > 100 && gg < 170 && bb < 110) orange++; else if (gg > 150 && bb > 140 && r < 90) teal++; } return { white, orange, teal }; }, buf.toString('base64'));
     fs.writeFileSync(`/tmp/claude-0/s6/${rel}.png`, await p.screenshot()); return c;
@@ -26,9 +26,9 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   ok('N3 GERÇEK ekran görüntüsünde Geleneksel Van çizilmiş: turuncu kargo kutusu pikselleri', cv.orange > 1200, JSON.stringify(cv));
   /* ---- 2. hareket + tekerlek dönüşü ---- */
   await p.evaluate(() => { window.__app.setSim(30); }); const sp1 = (await p.evaluate(() => window.RobovanMap.debug().van.vehicles.map(v => v.spin))); await p.evaluate(() => { window.__app.setSim(60); }); const sp2 = (await p.evaluate(() => window.RobovanMap.debug().van.vehicles.map(v => v.spin)));
-  ok('N4 Tekerlek dönüşü hareketle senkron (yol uzadıkça artar; km × 1000 / 0,5 m yarıçap)', sp1.every(x => x > 0) && sp2.every((x, i) => x > sp1[i]) && await p.evaluate(() => { const s = window.__app.live().at(60)[0]; const v = window.RobovanMap.debug().van.vehicles[0]; return Math.abs(v.spin - s.km * 2000) < 1e-3; }), JSON.stringify([sp1, sp2]));
+  ok('N4 Tekerlek dönüşü hareketle senkron (yol uzadıkça artar; km × 1000 / 0,5 m yarıçap)', sp1[0] > 0 && sp2.every((x, i) => x >= sp1[i]) && sp2[0] > sp1[0] && await p.evaluate(() => { const s = window.__app.live().at(60)[0]; const v = window.RobovanMap.debug().van.vehicles.filter(q => q.id === s.id)[0]; return Math.abs(v.spin - s.km * 2000) < 1e-3; }), JSON.stringify([sp1, sp2]));
   /* yön: dönüşlerde yol doğrultusu (iki ardışık konum arası yön ile aracın yönü) */
-  const hd = await p.evaluate(() => { const out = []; for (let t = 20; t < 120; t += 4) { window.__app.setSim(t); const a = window.RobovanMap.debug().pos.robovan; out.push(a.brg); } return out; });
+  const hd = await p.evaluate(() => { const out = []; for (let t = 20; t < 120; t += 4) { window.__app.setSim(t); const a = window.RobovanMap.debug().pos['robovan:0']; out.push(a.brg); } return out; });
   const jumps = hd.slice(1).map((x, i) => Math.abs(((x - hd[i] + 540) % 360) - 180)).filter(d => d > 60);
   ok('N5 Yön geçişleri yumuşak: yalnızca rota sonundaki dönüşte (U dönüşü) büyük değişim, başka ani sıçrama yok', jumps.length <= 1, hd.map(x => Math.round(x)).join(','));
   /* ---- 3. 3D model: gerçek geometri (sprite/panoya dayanmıyor) ---- */
@@ -75,8 +75,8 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   await sctx.route(/router\.project-osrm\.org\/route/, async r => { await new Promise(x => setTimeout(x, 7000)); r.fulfill({ contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: H.OSRM }); });
   const slowP = await sctx.newPage(); await slowP.goto(url); await H.waitMap(slowP); await slowP.waitForTimeout(2500);
   const early = await slowP.evaluate(() => ({ v: window.RobovanMap.debug().van.vehicles.length, t: document.getElementById('tlTxt').textContent, pp: document.getElementById('pp').disabled, lbl: document.querySelector('.mk-label') && document.querySelector('.mk-label').textContent }));
-  ok('N26 Rota servisi geç yanıt verirken araçlar görünür (park halinde); hareketin neden başlamadığı yazılır', early.v === 2 && early.pp && /hesaplanıyor|park halinde/.test(early.t) && /park halinde/.test(early.lbl || ''), JSON.stringify(early));
-  await H.waitPlan(slowP, 25000); ok('N27 Rota gelince hareket kullanılabilir olur, araçlar yerinde', await slowP.evaluate(() => window.RobovanMap.debug().van.vehicles.length === 2 && !document.getElementById('pp').disabled)); await sctx.close();
+  ok('N26 Rota servisi geç yanıt verirken araçlar görünür (park halinde); hareketin neden başlamadığı yazılır', early.v >= 2 && early.pp && /hesaplanıyor|park halinde/.test(early.t) && /park halinde/.test(early.lbl || ''), JSON.stringify(early));
+  await H.waitPlan(slowP, 25000); ok('N27 Rota gelince hareket kullanılabilir olur, araçlar yerinde', await slowP.evaluate(() => window.RobovanMap.debug().van.vehicles.length >= 2 && !document.getElementById('pp').disabled)); await sctx.close();
   /* ---- 9. responsive: yedi genişlik ---- */
   for (const w of [375, 390, 430, 768, 1024, 1280, 1440]) {
     const c = await b.newContext({ viewport: { width: w, height: w < 900 ? 800 : 900 }, deviceScaleFactor: 1 }); await H.stubServices(c, {}); const q = await c.newPage(); await q.goto(url); await H.waitMap(q); await H.waitPlan(q); await q.waitForTimeout(600);

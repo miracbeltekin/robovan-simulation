@@ -49,7 +49,7 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   ok('G4d Çubuk dilimleri toplamı = toplam çubuk uzunluğu (kalem kalem dağılım tutarlı)', segSum.every(v => v > 0 && v <= 100), JSON.stringify(segSum));
   await p.click('[data-bm="live"]'); await p.evaluate(() => { window.__app.pause(); window.__app.setSim(window.__app.sim().end); }); await p.waitForTimeout(120);
   const liveBars = await p.$$eval('#costBars .cb-t', ts => ts.map(t => t.textContent));
-  ok('G4e Sefer sonunda canlı çubuklar = motorun sefer maliyeti', liveBars.every((t, i) => t === fmt2(perTrip[i])), JSON.stringify([liveBars, perTrip])); await p.evaluate(() => window.__app.reset());
+  const dayTot = await p.evaluate(() => ['robovan', 'conventional'].map(k => window.__last.vehicles[k].fleet / window.__last.config.scenario.days)); ok('G4e Gün sonunda canlı çubuklar = motorun günlük filo maliyeti (yıllık ÷ çalışma günü)', liveBars.every((t, i) => t === fmt2(dayTot[i])), JSON.stringify([liveBars, dayTot])); await p.evaluate(() => window.__app.reset());
   const be = await p.evaluate(() => window.__last.kpi.breakEven); await p.click('[data-tab="inv"]'); const note = await p.textContent('#cumNote'); const statBE = await p.textContent('#extra .stat:first-child .v');
   ok('G5 Birikimli grafik başa baş notu = KPI geri ödeme', be.years === null ? note.includes('yok') : (be.years === 0 || note.includes(be.label)) && statBE.trim() === be.label, `${note.slice(0, 60)} | ${statBE}`);
   const sensAt = async (param, metric) => {

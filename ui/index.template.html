@@ -73,6 +73,7 @@
       <div class="fld sm" id="rfBox"><label for="s.roadFactor">Yol katsayısı (kuş uçuşu tahmini için)</label><div class="inp"><input id="s.roadFactor" data-f="s.roadFactor" inputmode="decimal" autocomplete="off"><span class="u">×</span></div></div>
       </div>
     </div>
+    <div class="carcard card" id="carcard" hidden role="dialog" aria-label="Araç ayrıntısı"><div class="cc-h"><i></i><div><b id="ccName"></b><span id="ccSub"></span></div><button id="ccClose" class="iconx" aria-label="Kapat">×</button></div><div class="cc-big" id="ccBig"></div><div class="cc-grid" id="ccGrid"></div><div class="cc-items" id="ccItems"></div></div>
     <div class="hud" id="hud" aria-live="off"><div class="hud-h"><b id="hudClock">06:00</b><span id="hudEl">0 sa 00 dk</span><span class="hud-st" id="hudSt">Hazır</span></div><div class="hud-rows" id="hudRows"></div><div class="hud-d" id="hudDiff"></div></div>
     <div class="timeline" id="timeline">
       <input type="range" id="tl" min="0" max="1000" value="0" aria-label="Sefer ilerlemesi">
@@ -93,6 +94,17 @@
       <div class="pair" id="pair"><label class="sr" for="selA">Birinci araç</label><select id="selA" class="sel" aria-label="Karşılaştırılan birinci araç"></select><span class="vs">ile</span><label class="sr" for="selB">İkinci araç</label><select id="selB" class="sel" aria-label="Karşılaştırılan ikinci araç"></select></div>
       <div class="cmp" id="cmpGrid"></div>
       <div class="r-foot"><span class="tag">GÖSTERİM</span><span id="rFoot">—</span></div>
+    </div>
+
+    <div class="card" id="whyCard">
+      <div class="c-head"><b>Neden bu sonuç?</b><span class="muted small">km başına maliyet farkı</span></div>
+      <p class="why-head" id="whyHead">—</p><div class="why-items" id="whyItems"></div><div class="why-rank" id="whyRank"></div>
+    </div>
+
+    <div class="card" id="wiCard">
+      <div class="c-head"><b>Ya olursa?</b><span class="muted small">senaryo seçin</span></div>
+      <div class="chips" id="wiChips" role="group" aria-label="What-if senaryoları"><button data-wi="fuel" aria-pressed="false">Dizel yakıt +%20</button><button data-wi="driver" aria-pressed="false">Sürücü maliyeti +%30</button><button data-wi="ratio" aria-pressed="false">Operatör başına 10 araç</button><button data-wi="price" aria-pressed="false">Robovan fiyatı −%10</button></div>
+      <div class="live-d wi-res" id="wiRes"></div>
     </div>
 
     <div class="card" id="ctrlCard">

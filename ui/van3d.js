@@ -150,7 +150,7 @@ function create(opts) {
         var mpp = 78271.517 * Math.cos(v.lat * Math.PI / 180) / Math.pow(2, zoom), vis = Math.max(MIN_VIS, Math.min(MAX_VIS, TARGET_PX * mpp / 5.4)); v.vis = vis; v.lenPx = 5.4 * vis / mpp;
         var mc = ML.MercatorCoordinate.fromLngLat([v.lng, v.lat], 0), s = mc.meterInMercatorCoordinateUnits() * vis;
         var rotZ = new THREE.Matrix4().makeRotationZ(-v.brg * Math.PI / 180);
-        var l = new THREE.Matrix4().makeTranslation(mc.x, mc.y, mc.z).scale(new THREE.Vector3(s, -s, s)).multiply(rotZ).multiply(new THREE.Matrix4().makeTranslation(v.off || 0, 0, 0));
+        var l = new THREE.Matrix4().makeTranslation(mc.x, mc.y, mc.z).scale(new THREE.Vector3(s, -s, s)).multiply(rotZ).multiply(new THREE.Matrix4().makeTranslation(v.off || 0, v.offY || 0, 0));
         camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix).multiply(l);
         renderer.render(scene, camera);
       });
@@ -160,11 +160,11 @@ function create(opts) {
   return {
     layer: layer,
     /* vs: [{id,type:'robovan'|'conventional',color,lng,lat,brg,off,spin}] */
-    setAll: function (vs) { var prev = {}; list.forEach(function (o) { prev[o.id] = o; }); list = vs.map(function (v) { return { vis: prev[v.id] && prev[v.id].vis, lenPx: prev[v.id] && prev[v.id].lenPx, id: v.id, type: v.type, color: v.color, lng: v.lng, lat: v.lat, brg: v.brg, off: v.off || 0, spin: v.spin || 0 }; }); if (map) map.triggerRepaint(); },
+    setAll: function (vs) { var prev = {}; list.forEach(function (o) { prev[o.id] = o; }); list = vs.map(function (v) { return { vis: prev[v.id] && prev[v.id].vis, lenPx: prev[v.id] && prev[v.id].lenPx, id: v.id, type: v.type, color: v.color, lng: v.lng, lat: v.lat, brg: v.brg, off: v.off || 0, offY: v.offY || 0, spin: v.spin || 0 }; }); if (map) map.triggerRepaint(); },
     hide: function () { list = []; if (map) map.triggerRepaint(); },
     setSimple: function (v) { simple = !!v; if (map) map.triggerRepaint(); },
     isSimple: function () { return simple; },
-    state: function () { return { simple: simple, vehicles: list.map(function (v) { return { id: v.id, type: v.type, color: v.color, lng: v.lng, lat: v.lat, brg: v.brg, off: v.off, spin: v.spin, vis: v.vis, lenPx: v.lenPx }; }) }; }
+    state: function () { return { simple: simple, vehicles: list.map(function (v) { return { id: v.id, type: v.type, color: v.color, lng: v.lng, lat: v.lat, brg: v.brg, off: v.off, offY: v.offY, spin: v.spin, vis: v.vis, lenPx: v.lenPx }; }) }; }
   };
 }
 

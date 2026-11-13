@@ -1,0 +1,5 @@
+const { chromium, devices } = require('playwright'); const H = require('./helpers');
+(async () => { const b = await chromium.launch({ args: H.ARGS }); const ctx = await b.newContext({ ...devices['iPhone 13'], viewport: { width: 390, height: 664 } }); await H.stubServices(ctx); const p = await ctx.newPage(); await p.goto('file://' + process.argv[2]); await H.waitMap(p); await H.waitPlan(p); await p.click('#tcSkip').catch(() => {}); await p.evaluate(() => { window.scrollTo(0, 0); window.__app.setSim(200); });
+  await p.waitForTimeout(8000); await p.screenshot({ path: process.argv[3] + '/m-day.png' });
+  await p.evaluate(() => { const a = window.RobovanMap.debug().pos['robovan:0']; window.RobovanMap.map.jumpTo({ center: [a.lng, a.lat], zoom: 15.5, pitch: 58 }); }); await p.waitForTimeout(7000);
+  await p.evaluate(() => { [...document.querySelectorAll('.mk-label')].filter(l => l.style.display !== 'none')[0].click(); }); await p.waitForTimeout(800); await p.screenshot({ path: process.argv[3] + '/m-card.png' }); await b.close(); })();

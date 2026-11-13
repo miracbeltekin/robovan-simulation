@@ -1,0 +1,10 @@
+const { chromium, devices } = require('playwright'); const H = require('./helpers'); const fs = require('fs');
+const url = 'file://' + process.argv[2], dir = process.argv[3]; fs.mkdirSync(dir, { recursive: true });
+(async () => { const b = await chromium.launch({ args: H.ARGS });
+  const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } }); await H.stubServices(ctx); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.goto(url); await H.waitMap(p); await H.waitPlan(p); await p.click('#tcSkip').catch(() => {});
+  await p.evaluate(() => window.__app.setSim(0)); await p.waitForTimeout(3000); await p.screenshot({ path: dir + '/g0-0600.png' });
+  await p.evaluate(() => window.__app.setSim(200)); await p.waitForTimeout(6000); await p.screenshot({ path: dir + '/g1-0920.png' });
+  await p.evaluate(() => { const l = document.querySelector('.mk-label:not([style*="none"])'); l && l.click(); }); await p.waitForTimeout(1200); await p.screenshot({ path: dir + '/g2-card.png' });
+  await p.evaluate(() => window.scrollTo(0, 0)); await p.click('[data-wi="fuel"]'); await p.click('[data-wi="ratio"]'); await p.waitForTimeout(600); await p.evaluate(() => document.getElementById('whyCard').scrollIntoView()); await p.waitForTimeout(400); await p.screenshot({ path: dir + '/g3-panel.png' });
+  console.log('errs', errs, await p.evaluate(() => ({ labels: [...document.querySelectorAll('.mk-label')].filter(x => x.style.display !== 'none').map(x => x.innerText.replace(/\n/g, ' ')), why: document.getElementById('whyHead').innerText }))); await b.close(); })();
