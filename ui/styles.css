@@ -169,6 +169,7 @@ button:disabled{cursor:not-allowed}
 .cmp{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:0 var(--s1);border-top:1px solid var(--line)}
 .cm-h{padding:12px 0 8px;font-size:13px;font-weight:500;display:flex;flex-direction:column;align-items:flex-end;text-align:right}
 .cm-h .nm{display:flex;align-items:center;font-size:13px;color:var(--ink);font-weight:500}.cm-h i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
+.fleet-row{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:0 0 var(--s2);padding-bottom:var(--s2);border-bottom:1px solid var(--line)}.fr-l{grid-column:1/-1;font-size:13px;color:var(--muted)}.fr{display:flex;flex-direction:column;align-items:flex-start;min-width:0}.fr .nm{display:flex;align-items:center;font-size:13.5px;font-weight:500}.fr .nm i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
 .fl{display:inline-flex;align-items:center;gap:2px;margin-top:6px;border:1px solid var(--line2);border-radius:99px;background:var(--card2);padding:2px}
 .fl button{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--ink);font-size:20px;line-height:1;transition:background .15s var(--ease)}.fl button:hover:not(:disabled){background:var(--line)}.fl button:disabled{opacity:.35;cursor:not-allowed}
 .fl output{min-width:34px;text-align:center;font-size:18px;font-weight:600}
@@ -312,6 +313,13 @@ td.strong{font-weight:600}
 .chips button[aria-pressed="true"]{background:var(--cream);color:var(--cream-ink);border-color:var(--cream);font-weight:500}
 .wi-res{margin-top:var(--s2)}
 
+/* özet çubuğu, ⋯ düğmesi (yalnız telefon), katlanır kart, çip başlığı */
+.sumbar,.more-btn{display:none}
+.fold{padding:0}.fold>summary{list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:16px 24px;cursor:pointer;min-height:56px}.fold>summary::-webkit-details-marker{display:none}.fold>summary b{font-weight:600;font-size:16px}.fold>summary::after{content:'+';color:var(--muted);margin-left:8px}.fold[open]>summary::after{content:'−'}
+.fold>:not(summary){margin-inline:24px}.fold>:last-child{margin-bottom:20px}
+.chips-h{font-size:13.5px;color:var(--muted);margin:var(--s2) 0 8px}
+#ctrlCard .live-d.wi-res{margin-top:12px}#ctrlCard .gpill.wide{margin-top:var(--s2)}
+
 /* geniş ekran: 1280+ ; orta ekran: panel daralır */
 @media(max-width:1100px){.console{grid-template-columns:minmax(0,1fr) 340px;padding-inline:16px}.top{padding-inline:16px}.routechip{display:none}.timeline{width:calc(100% - 32px);bottom:44px}.hud{bottom:136px}.routecard{bottom:350px}.mapnote{display:none}}
 
@@ -351,6 +359,30 @@ td.strong{font-weight:600}
   .wrapx{padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
   .fields{grid-template-columns:minmax(0,1fr)}
 }
+@media(max-width:900px){
+  /* harita neredeyse tüm ekran; sonuçlar açılır-kapanır alt panelde (kapalıyken yalnız özet çubuğu) */
+  .mapcard{height:calc(100svh - 138px);min-height:340px}
+  .mapbar{display:none}.mapcard.more .mapbar{display:flex}
+  .mapctl .more-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;padding:0;font-size:20px;letter-spacing:2px}
+  .mapctl{max-width:calc(100% - 64px)}
+  .mapcard .maplibregl-ctrl-top-right{top:60px}
+  .panel{position:fixed;left:0;right:0;bottom:0;z-index:30;max-height:88svh;overflow:auto;margin:0;padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:0;box-shadow:0 -10px 34px rgba(0,0,0,.55);transform:translateY(calc(100% - 76px - env(safe-area-inset-bottom,0px)));transition:transform .25s var(--ease);overscroll-behavior:contain}
+  .panel::before{display:none}
+  .panel.open{transform:none}
+  .panel>*{flex-shrink:0}
+  .panel:not(.open)>*:not(.sumbar){visibility:hidden}
+  .sumbar{display:flex;position:sticky;top:0;z-index:2;width:calc(100% + 32px);margin:0 -16px 8px;padding:14px 16px 12px;min-height:76px;align-items:center;gap:12px;background:var(--panel);border:0;border-radius:22px 22px 0 0;color:var(--ink);text-align:left;flex-wrap:wrap}
+  .sb-grip{position:absolute;top:6px;left:50%;width:44px;height:4px;margin-left:-22px;border-radius:2px;background:var(--line2)}
+  .sb-t{flex:1 1 60%;font-size:15px;font-weight:600;line-height:1.25;padding-top:8px}.sb-v{font-size:17px;font-weight:600;color:var(--good);padding-top:8px;white-space:nowrap}.sb-c{font-size:18px;color:var(--muted);transition:transform .2s var(--ease);padding-top:8px}.panel.open .sb-c{transform:rotate(180deg)}
+  .panel>.result{order:0}.panel>.tipcard{order:0}
+  .hud{bottom:12px}
+  #rLbl{display:none}
+  .foot{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .analysis{padding-bottom:var(--s2)}
+  .fold>summary{padding:14px 16px}.fold>:not(summary){margin-inline:16px}
+}
 @media(max-width:480px){.stats{grid-template-columns:1fr}.cream#copy{padding:0 14px;font-size:13px}.sel{padding-left:12px}.logo{height:28px}.tools{gap:6px}}
 @media(max-width:400px){.mapctl .pill button{padding:0 8px;min-width:32px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+#tipcard{display:none!important}

@@ -39,3 +39,10 @@ Referans site (heritage-b.club/lab/robotaxi) kaynak koduyla yeniden incelendi. F
 - Her model kendi sayısına sahiptir (`vehicle.count`, 0 = otomatik). Eski "Robovan sayısını sabitle" alanı kaldırıldı; eski kayıttaki değer Robovan araç sayısına taşınır.
 - Sayı talebi karşılamıyorsa kartta ve uyarılarda "yetmiyor, gereken N" görünür; hesap sürer. 1 ile 200 arası (motor 1000'e kadar).
 - Haritada her türden en çok 8 araç gösterilir; hesap, gün defteri ve HUD tüm araçları kapsar.
+
+## v0.9.0 — sadeleştirme turu (kullanıcı kararlarıyla)
+- **Ana ekran (orta yol):** panelde yalnızca Karar kartı (verdict, yıllık fark, araç sayısı, km/sefer/yıllık), Yıllık maliyet çubuğu, "Neyi değiştirebilirim?" (5 değer + "Ya olursa?" çipleri) ve katlı "Neden bu sonuç?". İpucu kartı kaldırıldı.
+- **Çubuk sekmeleri 3 → 1:** ana ekranda yalnızca yıllık filo çubuğu; "Canlı sefer / Sefer başına / Yıllık filo" seçenekleri Detaylı Analiz > Özet'e taşındı.
+- **Karşılaştırma seçici gizli:** iki modelde Robovan ↔ Geleneksel Van sabittir; seçici üçüncü model eklenince görünür.
+- **Mobil:** harita ekranın ~%80'i; sonuçlar açılır-kapanır alt panelde (kapalıyken yalnız "Robovan %51 daha ekonomik · $81.118/yıl" özet çubuğu); harita görünüm düğmeleri ⋯ arkasında.
+- Yeni test: `tests/ui-check8.js`.

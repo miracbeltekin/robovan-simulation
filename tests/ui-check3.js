@@ -48,6 +48,7 @@ async function withMap(browser, opts) {
   }
   /* mobil: rota kartı daralt/genişlet */
   m = await withMap(b, { ...devices['iPhone 13'] }); p = m.p;
+  await p.click('#sumBar'); await p.waitForTimeout(500);
   ok('N1 Mobilde rota kartı varsayılan daraltılmış', (await p.getAttribute('#rcToggle', 'aria-expanded')) === 'false' && !(await p.isVisible('#cityPick')));
   await p.click('#rcToggle'); ok('N2 Mobilde genişletince rota alanları görünür', await p.isVisible('#cityPick'));
   console.log(out.join('\n')); const bad = out.filter(l => l.startsWith('KALDI')).length; console.log(out.length + ' kontrol, ' + bad + ' kalan'); await b.close(); process.exit(bad ? 1 : 0);

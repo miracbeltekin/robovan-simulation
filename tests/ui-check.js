@@ -34,7 +34,7 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   const dem = p.locator('[data-f="sl.demand"]'); await dem.click(); await dem.fill('abc'); await p.waitForTimeout(120);
   ok('A14 Geçersiz giriş → hata + soluk sonuç', (await p.locator('#warns .warn.err').count()) > 0 && (await dem.getAttribute('aria-invalid')) === 'true' && (await p.$eval('#resultCard', e => e.style.opacity)) === '0.5');
   await dem.fill('8'); await p.waitForTimeout(100); ok('A15 Düzeltince hata kalktı', (await p.locator('#warns .warn.err').count()) === 0);
-  await p.selectOption('#selB', 'robovan'); await p.waitForTimeout(100); ok('A16 Karşılaştırma seçimi aynı araçta swap edilir (A≠B)', (await p.inputValue('#selA')) === 'conventional' && (await p.inputValue('#selB')) === 'robovan'); await p.selectOption('#selB', 'conventional'); await p.waitForTimeout(100);
+  ok('A16 İki modelde karşılaştırma seçicisi gizli (sabit iki araç); üçüncü model eklenince görünür', (await p.isHidden('#pair')) && await (async () => { await p.evaluate(() => { const c = window.__app.cfg(); c.fleet.push(window.RobovanEngine.makeVehicle('robovan', 'rv9', 'Robovan 9')); }); await p.click('#myNums'); await p.click('[data-st="robovan"]'); await p.click('#addRobo').catch(() => {}); await p.keyboard.press('Escape'); await p.waitForTimeout(300); return await p.isVisible('#pair'); })());
   // rota
   await p.selectOption('#cityPick', 'Sakarya'); await p.click('#cityAdd'); await p.waitForTimeout(100);
   ok('A17 Durak eklendi (3 durak)', (await p.locator('#wps .wp').count()) === 3 && (await p.textContent('#routeChip')).includes('+1 durak'), await p.textContent('#routeChip'));

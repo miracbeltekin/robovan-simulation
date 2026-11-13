@@ -193,6 +193,7 @@ button:disabled{cursor:not-allowed}
 .cmp{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:0 var(--s1);border-top:1px solid var(--line)}
 .cm-h{padding:12px 0 8px;font-size:13px;font-weight:500;display:flex;flex-direction:column;align-items:flex-end;text-align:right}
 .cm-h .nm{display:flex;align-items:center;font-size:13px;color:var(--ink);font-weight:500}.cm-h i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
+.fleet-row{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:0 0 var(--s2);padding-bottom:var(--s2);border-bottom:1px solid var(--line)}.fr-l{grid-column:1/-1;font-size:13px;color:var(--muted)}.fr{display:flex;flex-direction:column;align-items:flex-start;min-width:0}.fr .nm{display:flex;align-items:center;font-size:13.5px;font-weight:500}.fr .nm i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
 .fl{display:inline-flex;align-items:center;gap:2px;margin-top:6px;border:1px solid var(--line2);border-radius:99px;background:var(--card2);padding:2px}
 .fl button{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--ink);font-size:20px;line-height:1;transition:background .15s var(--ease)}.fl button:hover:not(:disabled){background:var(--line)}.fl button:disabled{opacity:.35;cursor:not-allowed}
 .fl output{min-width:34px;text-align:center;font-size:18px;font-weight:600}
@@ -336,6 +337,13 @@ td.strong{font-weight:600}
 .chips button[aria-pressed="true"]{background:var(--cream);color:var(--cream-ink);border-color:var(--cream);font-weight:500}
 .wi-res{margin-top:var(--s2)}
 
+/* özet çubuğu, ⋯ düğmesi (yalnız telefon), katlanır kart, çip başlığı */
+.sumbar,.more-btn{display:none}
+.fold{padding:0}.fold>summary{list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:16px 24px;cursor:pointer;min-height:56px}.fold>summary::-webkit-details-marker{display:none}.fold>summary b{font-weight:600;font-size:16px}.fold>summary::after{content:'+';color:var(--muted);margin-left:8px}.fold[open]>summary::after{content:'−'}
+.fold>:not(summary){margin-inline:24px}.fold>:last-child{margin-bottom:20px}
+.chips-h{font-size:13.5px;color:var(--muted);margin:var(--s2) 0 8px}
+#ctrlCard .live-d.wi-res{margin-top:12px}#ctrlCard .gpill.wide{margin-top:var(--s2)}
+
 /* geniş ekran: 1280+ ; orta ekran: panel daralır */
 @media(max-width:1100px){.console{grid-template-columns:minmax(0,1fr) 340px;padding-inline:16px}.top{padding-inline:16px}.routechip{display:none}.timeline{width:calc(100% - 32px);bottom:44px}.hud{bottom:136px}.routecard{bottom:350px}.mapnote{display:none}}
 
@@ -375,9 +383,33 @@ td.strong{font-weight:600}
   .wrapx{padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
   .fields{grid-template-columns:minmax(0,1fr)}
 }
+@media(max-width:900px){
+  /* harita neredeyse tüm ekran; sonuçlar açılır-kapanır alt panelde (kapalıyken yalnız özet çubuğu) */
+  .mapcard{height:calc(100svh - 138px);min-height:340px}
+  .mapbar{display:none}.mapcard.more .mapbar{display:flex}
+  .mapctl .more-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;padding:0;font-size:20px;letter-spacing:2px}
+  .mapctl{max-width:calc(100% - 64px)}
+  .mapcard .maplibregl-ctrl-top-right{top:60px}
+  .panel{position:fixed;left:0;right:0;bottom:0;z-index:30;max-height:88svh;overflow:auto;margin:0;padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:0;box-shadow:0 -10px 34px rgba(0,0,0,.55);transform:translateY(calc(100% - 76px - env(safe-area-inset-bottom,0px)));transition:transform .25s var(--ease);overscroll-behavior:contain}
+  .panel::before{display:none}
+  .panel.open{transform:none}
+  .panel>*{flex-shrink:0}
+  .panel:not(.open)>*:not(.sumbar){visibility:hidden}
+  .sumbar{display:flex;position:sticky;top:0;z-index:2;width:calc(100% + 32px);margin:0 -16px 8px;padding:14px 16px 12px;min-height:76px;align-items:center;gap:12px;background:var(--panel);border:0;border-radius:22px 22px 0 0;color:var(--ink);text-align:left;flex-wrap:wrap}
+  .sb-grip{position:absolute;top:6px;left:50%;width:44px;height:4px;margin-left:-22px;border-radius:2px;background:var(--line2)}
+  .sb-t{flex:1 1 60%;font-size:15px;font-weight:600;line-height:1.25;padding-top:8px}.sb-v{font-size:17px;font-weight:600;color:var(--good);padding-top:8px;white-space:nowrap}.sb-c{font-size:18px;color:var(--muted);transition:transform .2s var(--ease);padding-top:8px}.panel.open .sb-c{transform:rotate(180deg)}
+  .panel>.result{order:0}.panel>.tipcard{order:0}
+  .hud{bottom:12px}
+  #rLbl{display:none}
+  .foot{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .analysis{padding-bottom:var(--s2)}
+  .fold>summary{padding:14px 16px}.fold>:not(summary){margin-inline:16px}
+}
 @media(max-width:480px){.stats{grid-template-columns:1fr}.cream#copy{padding:0 14px;font-size:13px}.sel{padding-left:12px}.logo{height:28px}.tools{gap:6px}}
 @media(max-width:400px){.mapctl .pill button{padding:0 8px;min-width:32px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+#tipcard{display:none!important}
 
 
 </style>
@@ -417,7 +449,7 @@ td.strong{font-weight:600}
       <button data-view="3d" class="mc">3D</button><button data-view="top" class="mc">Üstten</button><button data-view="fit" class="mc">Tüm rota</button>
       <button id="followBtn" class="mc" aria-pressed="false">Aracı takip et</button>
     </div>
-    <div class="mapctl" id="mapctl"></div>
+    <div class="mapctl" id="mapctl"><button type="button" class="mc more-btn" id="moreBtn" aria-pressed="false" aria-label="Harita görünüm düğmelerini aç/kapat">⋯</button></div>
     <div class="maptip" id="maptip" hidden></div>
     <div class="routecard card" id="routecard">
       <div class="rc-head"><b>Rota ve duraklar</b>
@@ -448,6 +480,7 @@ td.strong{font-weight:600}
   </section>
 
   <aside class="panel" id="panel" aria-label="Sonuçlar ve parametreler">
+    <button type="button" class="sumbar" id="sumBar" aria-expanded="false" aria-controls="panel"><span class="sb-grip" aria-hidden="true"></span><span class="sb-t" id="sbT">—</span><span class="sb-v" id="sbV">—</span><span class="sb-c" aria-hidden="true">⌃</span></button>
     <div class="card tipcard" id="tipcard">
       <div class="tc-top"><span id="tcStep">Adım 1 / 3</span><span class="dots" id="tcDots"></span></div>
       <h3 id="tcTitle">Rotayı seçin</h3><p id="tcText"></p>
@@ -457,35 +490,33 @@ td.strong{font-weight:600}
     <div class="card result" id="resultCard">
       <div class="r-top"><div class="r-main"><div class="lbl" id="rLbl">Tahmini yıllık tasarruf</div><div class="big" id="rBig">—</div><div class="r-sub" id="rSub">—</div></div></div>
       <div class="pair" id="pair"><label class="sr" for="selA">Birinci araç</label><select id="selA" class="sel" aria-label="Karşılaştırılan birinci araç"></select><span class="vs">ile</span><label class="sr" for="selB">İkinci araç</label><select id="selB" class="sel" aria-label="Karşılaştırılan ikinci araç"></select></div>
+      <div class="fleet-row" id="fleetRow"></div>
       <div class="cmp" id="cmpGrid"></div>
       <p class="small muted" id="cmpNote" hidden></p>
       <div class="r-foot"><span class="tag">GÖSTERİM</span><span id="rFoot">—</span></div>
     </div>
 
-    <div class="card" id="whyCard">
-      <div class="c-head"><b>Neden bu sonuç?</b><span class="muted small">km başına maliyet farkı</span></div>
-      <p class="why-head" id="whyHead">—</p><div class="why-items" id="whyItems"></div><div class="why-rank" id="whyRank"></div>
-    </div>
 
-    <div class="card" id="wiCard">
-      <div class="c-head"><b>Ya olursa?</b><span class="muted small">senaryo seçin</span></div>
-      <div class="chips" id="wiChips" role="group" aria-label="What-if senaryoları"><button data-wi="fuel" aria-pressed="false">Dizel yakıt +%20</button><button data-wi="driver" aria-pressed="false">Sürücü maliyeti +%30</button><button data-wi="ratio" aria-pressed="false">Operatör başına 10 araç</button><button data-wi="price" aria-pressed="false">Robovan fiyatı −%10</button></div>
-      <div class="live-d wi-res" id="wiRes"></div>
+
+    <div class="card" id="yearCard">
+      <div class="c-head"><b>Yıllık maliyet</b><span class="muted small">tüm araçlar, bir yıl</span></div>
+      <div class="cbars" id="yearBars"></div><div class="legend" id="lgYear"></div>
     </div>
 
     <div class="card" id="ctrlCard">
-      <div class="c-head"><b>Sonucu etkileyen ana değerler</b></div>
+      <div class="c-head"><b>Neyi değiştirebilirim?</b><span class="muted small">sonuç anında güncellenir</span></div>
       <div id="sliders" class="sliders"></div>
+      <div class="chips-h">Ya olursa?</div>
+      <div class="chips" id="wiChips" role="group" aria-label="What-if senaryoları"><button data-wi="fuel" aria-pressed="false">Dizel yakıt +%20</button><button data-wi="driver" aria-pressed="false">Sürücü maliyeti +%30</button><button data-wi="ratio" aria-pressed="false">Operatör başına 10 araç</button><button data-wi="price" aria-pressed="false">Robovan fiyatı −%10</button></div>
+      <div class="live-d wi-res" id="wiRes"></div>
       <button class="gpill wide" id="myNums3">Tüm değerleri düzenle</button>
     </div>
 
-    <div class="card" id="barCard">
-      <div class="c-head"><b>Araç maliyet karşılaştırması</b></div>
-      <div class="seg3" role="group" aria-label="Çubuk görünümü"><button data-bm="live" aria-pressed="true">Canlı sefer</button><button data-bm="trip" aria-pressed="false">Sefer başına</button><button data-bm="year" aria-pressed="false">Yıllık filo</button></div>
-      <div class="cbars" id="costBars"></div><div class="legend" id="lgBars"></div>
-      <div class="live-d" id="liveDiff"></div>
-      <p class="small muted" id="barNote"></p>
-    </div>
+    <details class="card fold" id="whyCard">
+      <summary><b>Neden bu sonuç?</b><span class="muted small">km başına fark</span></summary>
+      <p class="why-head" id="whyHead">—</p><div class="why-items" id="whyItems"></div><div class="why-rank" id="whyRank"></div>
+    </details>
+
 
     <button class="cream wide3" id="goAnalysis">Detaylı analiz ve raporlar ↓</button>
     <div class="disclaimer" id="scopeNote"><b>Robovan yalnızca trafiğe kapalı, kontrollü alanlarda çalışır;</b> haritadaki karayolu rotaları karşılaştırma içindir. Tasarruf tahminleri yalnızca örnek değerlerle yapılmış gösterimdir. Gerçek sonuçlar farklı olabilir ve garanti edilmez. Para birimi seçimi yalnızca etikettir.</div>
@@ -504,6 +535,13 @@ td.strong{font-weight:600}
     <button role="tab" id="tab-sens" data-tab="sens" aria-selected="false" aria-controls="pn-sens">Duyarlılık</button>
   </div>
   <div class="tabpanel" role="tabpanel" id="pn-sum" aria-labelledby="tab-sum">
+    <div class="card" id="barCard">
+      <div class="c-head"><b>Araç maliyet karşılaştırması</b></div>
+      <div class="seg3" role="group" aria-label="Çubuk görünümü"><button data-bm="live" aria-pressed="true">Canlı sefer</button><button data-bm="trip" aria-pressed="false">Sefer başına</button><button data-bm="year" aria-pressed="false">Yıllık filo</button></div>
+      <div class="cbars" id="costBars"></div><div class="legend" id="lgBars"></div>
+      <div class="live-d" id="liveDiff"></div>
+      <p class="small muted" id="barNote"></p>
+    </div>
     <h3>İki aracın temel karşılaştırması</h3>
     <div class="twrap"><table id="sumTable"></table></div>
     <h3>Operasyon göstergeleri</h3><p class="sub">Araç sayısı, kilometre, kapasite, personel ve enerji. Filo toplamlarıdır.</p>
@@ -1876,7 +1914,7 @@ var CAT = E.CATEGORIES, FIELDS = {};
 D.SCHEMA.forEach(function (g) { g.f.forEach(function (f) { FIELDS[f[0]] = f; }); });
 
 /* ---------- durum ---------- */
-function freshUi() { return { cur: '$', tip: 0, tipDone: false, param: 'demand', metric: 'perKm', routeOpen: null, bm: 'live', tab: 'sum', wi: { fuel: false, driver: false, ratio: false, price: false } }; }
+function freshUi() { return { cur: '$', tip: 0, tipDone: true, param: 'demand', metric: 'perKm', routeOpen: null, bm: 'live', tab: 'sum', wi: { fuel: false, driver: false, ratio: false, price: false } }; }
 var fieldErr = {}, shTab = 'ops';
 function reset() { cfg = E.defaultConfig(); ui = freshUi(); raw = {}; sim.t = 0; sim.playing = false; }
 reset();
@@ -2012,7 +2050,12 @@ document.addEventListener('input', function (e) {
 document.addEventListener('focusout', function (e) { var t = e.target; if (t.dataset && t.dataset.name && !String(t.value).trim()) { var v = veh(t.dataset.name); if (v) { v.name = CAT[v.category].label; t.value = v.name; fillPair(); update(); } } if (t.dataset && (t.dataset.name || t.dataset.model)) fillPair(); });
 document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.dataset && d.dataset.g) openCards[d.dataset.g] = d.open; }, true);
 document.addEventListener('click', function (e) { var t = e.target.closest('[data-tab]'), st = e.target.closest('[data-st]'); if (t) { ui.tab = t.dataset.tab; update(); } else if (st) { shTab = st.dataset.st; syncInputs(); } });
-$('goAnalysis').onclick = function () { $('analysis').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+$('goAnalysis').onclick = function () { setSheet(false); $('analysis').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+/* mobil: açılır-kapanır alt panel (kapalıyken yalnız özet çubuğu) ve harita düğmeleri için ⋯ */
+function setSheet(open) { $('panel').classList.toggle('open', open); $('sumBar').setAttribute('aria-expanded', open ? 'true' : 'false'); }
+$('sumBar').onclick = function () { setSheet(!$('panel').classList.contains('open')); };
+$('moreBtn').onclick = function () { var on = !$('mapcard').classList.contains('more'); $('mapcard').classList.toggle('more', on); $('moreBtn').setAttribute('aria-pressed', on ? 'true' : 'false'); setTimeout(function () { M.resize(); }, 50); };
+
 $('cur').addEventListener('change', function (e) { ui.cur = e.target.value; update(); });
 $('selA').addEventListener('change', function (e) { setPair('a', e.target.value); }); $('selB').addEventListener('change', function (e) { setPair('b', e.target.value); });
 function setPair(which, id) { var o = which === 'a' ? 'b' : 'a'; if (cfg.compare[o] === id) cfg.compare[o] = cfg.compare[which]; cfg.compare[which] = id; update(); }
@@ -2287,8 +2330,10 @@ function mapFieldErrors(errors) {
   });
   return m;
 }
+/* iki model varken karşılaştırma sabittir (seçici gizli); üçüncü model eklenince seçici görünür */
+function ensurePair() { if (cfg.fleet.length === 2) { var ids = cfg.fleet.map(function (v) { return v.id; }); if (cfg.compare.a !== ids[0] || cfg.compare.b !== ids[1]) cfg.compare = { a: ids[0], b: ids[1] }; } $('pair').hidden = cfg.fleet.length <= 2; }
 function draw() {
-  var wiOn = wiActive(), a = E.analyze(effCfg(), analyzeOpts()), warns = [];
+  ensurePair(); var wiOn = wiActive(), a = E.analyze(effCfg(), analyzeOpts()), warns = [];
   fieldErr = a.ok ? {} : mapFieldErrors(a.errors);
   if (!a.ok) { a.errors.forEach(function (m) { warns.push(['err', m]); }); if (last) warns.push(['', 'Sonuçlar son geçerli girdilere aittir. Hataları düzeltin.']); $('resultCard').style.opacity = .5; }
   else { $('resultCard').style.opacity = 1; last = a; a.warnings.forEach(function (m) { warns.push(['', m]); }); }
@@ -2308,8 +2353,9 @@ function draw() {
   var big = $('rBig'); big.textContent = (sav < 0 ? '−' : '') + money(Math.abs(sav)).replace('−', ''); big.className = 'big' + (sav < 0 ? ' bad' : '');
   $('rSub').textContent = (sav >= 0 ? 'Tahmini yıllık tasarruf' : 'Tahmini yıllık ek maliyet') + ' · ' + A.name + ', ' + B.name + ' yerine · ' + sc.demand + ' sefer/gün';
   var cmpRows = [['km başına', function (c) { return c.perKm; }, 2], ['Sefer başına', function (c) { return c.perTrip; }, 2], ['Yıllık filo (' + 'tüm araçlar' + ')', function (c) { return c.fleet; }, 0]];
-  $('cmpGrid').innerHTML = '<div class="cm-h"></div>' + [A, B].map(function (c) { return '<div class="cm-h" style="--c:' + esc(c.color) + '"><span class="nm"><i></i>' + esc(c.name) + '</span>' + fleetCtl(c, veh(c.id)) + '</div>'; }).join('') +
+  $('cmpGrid').innerHTML = '<div class="cm-h"></div>' + [A, B].map(function (c) { return '<div class="cm-h" style="--c:' + esc(c.color) + '"><span class="nm"><i></i>' + esc(c.name) + '</span></div>'; }).join('') +
     cmpRows.map(function (row) { var x = row[1](A), y = row[1](B), ax = x !== null && y !== null && x < y, by = x !== null && y !== null && y < x; return '<div class="cm-l">' + row[0] + '</div><div class="cm-v' + (ax ? ' win' : '') + '">' + money(x, row[2]) + '</div><div class="cm-v' + (by ? ' win' : '') + '">' + money(y, row[2]) + '</div>'; }).join('');
+  $('fleetRow').innerHTML = '<div class="fr-l">Araç sayısı</div>' + [A, B].map(function (c) { return '<div class="fr" style="--c:' + esc(c.color) + '"><span class="nm"><i></i>' + esc(c.name) + '</span>' + fleetCtl(c, veh(c.id)) + '</div>'; }).join('');
   $('rFoot').textContent = (wiOn ? 'What-if aktif · ' : '') + 'Geri ödeme: ' + K.breakEven.label + ' · ' + nf(rt.km, 1) + ' km tek yön (' + sourceName(rt.source) + ')';
   /* geri ödeme / toplam (Yatırım ve Geri Ödeme sekmesi) */
   var be = K.breakEven, bw = K.breakEvenWage, bsel = veh(K.b);
@@ -2322,6 +2368,9 @@ function draw() {
   ].join('');
   r.order.forEach(function (k) { var e = $('vsum-' + k); if (e) e.textContent = V[k].n + ' araç · ' + (V[k].perKm === null ? '—' : nf(V[k].perKm, 2)) + ' ' + ui.cur + '/km · yıllık ' + money(V[k].fleet); });
   document.querySelectorAll('[id^="vsum-"]').forEach(function (e) { var id = e.id.slice(5); if (!V[id]) e.textContent = ''; });
+  /* ana ekran: yalnızca yıllık maliyet çubuğu; bugün / sefer başı çubukları Detaylı Analiz > Özet'te */
+  $('lgYear').innerHTML = C.costBars($('yearBars'), r.order.map(function (id) { var c = V[id]; return { id: id, name: c.name, color: c.color, seg: segsOf(c, c.n), total: c.fleet, sub: c.n + ' araç' }; }), function (x) { return money(x, 0); });
+  $('sbT').textContent = $('rLbl').textContent; $('sbV').textContent = money(Math.abs(sav)) + (sav < 0 ? ' ek maliyet/yıl' : '/yıl');
   /* araç çubukları (canlı modda renderLive çizer) */
   if (ui.bm !== 'live') renderBars(r, null);
   /* maliyet dağılımı: km başına */
@@ -2394,11 +2443,12 @@ function copySummary() {
 var mq = window.matchMedia('(max-width: 900px)');
 function placeRoute() {
   var rc = $('routecard'), pill = $('pill'), clock = $('clockbox');
-  if (mq.matches) { $('panel').insertBefore(rc, $('ctrlCard')); $('mapctl').appendChild(pill); $('mapctl').appendChild(clock); }
+  if (mq.matches) { $('panel').insertBefore(rc, $('ctrlCard')); $('mapctl').insertBefore(pill, $('moreBtn')); $('mapctl').insertBefore(clock, $('moreBtn')); }
   else { $('mapcard').insertBefore(rc, $('hud')); $('mid').appendChild(clock); $('mid').appendChild(pill); }
   applyRouteOpen(); M.resize();
 }
 mq.addEventListener ? mq.addEventListener('change', placeRoute) : mq.addListener(placeRoute);
+mq.addEventListener ? mq.addEventListener('change', function () { setSheet(false); }) : 0;
 
 /* ---------- saklama ---------- */
 var saveT;

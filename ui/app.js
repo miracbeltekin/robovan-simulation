@@ -11,7 +11,7 @@ var CAT = E.CATEGORIES, FIELDS = {};
 D.SCHEMA.forEach(function (g) { g.f.forEach(function (f) { FIELDS[f[0]] = f; }); });
 
 /* ---------- durum ---------- */
-function freshUi() { return { cur: '$', tip: 0, tipDone: false, param: 'demand', metric: 'perKm', routeOpen: null, bm: 'live', tab: 'sum', wi: { fuel: false, driver: false, ratio: false, price: false } }; }
+function freshUi() { return { cur: '$', tip: 0, tipDone: true, param: 'demand', metric: 'perKm', routeOpen: null, bm: 'live', tab: 'sum', wi: { fuel: false, driver: false, ratio: false, price: false } }; }
 var fieldErr = {}, shTab = 'ops';
 function reset() { cfg = E.defaultConfig(); ui = freshUi(); raw = {}; sim.t = 0; sim.playing = false; }
 reset();
@@ -147,7 +147,12 @@ document.addEventListener('input', function (e) {
 document.addEventListener('focusout', function (e) { var t = e.target; if (t.dataset && t.dataset.name && !String(t.value).trim()) { var v = veh(t.dataset.name); if (v) { v.name = CAT[v.category].label; t.value = v.name; fillPair(); update(); } } if (t.dataset && (t.dataset.name || t.dataset.model)) fillPair(); });
 document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.dataset && d.dataset.g) openCards[d.dataset.g] = d.open; }, true);
 document.addEventListener('click', function (e) { var t = e.target.closest('[data-tab]'), st = e.target.closest('[data-st]'); if (t) { ui.tab = t.dataset.tab; update(); } else if (st) { shTab = st.dataset.st; syncInputs(); } });
-$('goAnalysis').onclick = function () { $('analysis').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+$('goAnalysis').onclick = function () { setSheet(false); $('analysis').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+/* mobil: açılır-kapanır alt panel (kapalıyken yalnız özet çubuğu) ve harita düğmeleri için ⋯ */
+function setSheet(open) { $('panel').classList.toggle('open', open); $('sumBar').setAttribute('aria-expanded', open ? 'true' : 'false'); }
+$('sumBar').onclick = function () { setSheet(!$('panel').classList.contains('open')); };
+$('moreBtn').onclick = function () { var on = !$('mapcard').classList.contains('more'); $('mapcard').classList.toggle('more', on); $('moreBtn').setAttribute('aria-pressed', on ? 'true' : 'false'); setTimeout(function () { M.resize(); }, 50); };
+
 $('cur').addEventListener('change', function (e) { ui.cur = e.target.value; update(); });
 $('selA').addEventListener('change', function (e) { setPair('a', e.target.value); }); $('selB').addEventListener('change', function (e) { setPair('b', e.target.value); });
 function setPair(which, id) { var o = which === 'a' ? 'b' : 'a'; if (cfg.compare[o] === id) cfg.compare[o] = cfg.compare[which]; cfg.compare[which] = id; update(); }
@@ -422,8 +427,10 @@ function mapFieldErrors(errors) {
   });
   return m;
 }
+/* iki model varken karşılaştırma sabittir (seçici gizli); üçüncü model eklenince seçici görünür */
+function ensurePair() { if (cfg.fleet.length === 2) { var ids = cfg.fleet.map(function (v) { return v.id; }); if (cfg.compare.a !== ids[0] || cfg.compare.b !== ids[1]) cfg.compare = { a: ids[0], b: ids[1] }; } $('pair').hidden = cfg.fleet.length <= 2; }
 function draw() {
-  var wiOn = wiActive(), a = E.analyze(effCfg(), analyzeOpts()), warns = [];
+  ensurePair(); var wiOn = wiActive(), a = E.analyze(effCfg(), analyzeOpts()), warns = [];
   fieldErr = a.ok ? {} : mapFieldErrors(a.errors);
   if (!a.ok) { a.errors.forEach(function (m) { warns.push(['err', m]); }); if (last) warns.push(['', 'Sonuçlar son geçerli girdilere aittir. Hataları düzeltin.']); $('resultCard').style.opacity = .5; }
   else { $('resultCard').style.opacity = 1; last = a; a.warnings.forEach(function (m) { warns.push(['', m]); }); }
@@ -443,8 +450,9 @@ function draw() {
   var big = $('rBig'); big.textContent = (sav < 0 ? '−' : '') + money(Math.abs(sav)).replace('−', ''); big.className = 'big' + (sav < 0 ? ' bad' : '');
   $('rSub').textContent = (sav >= 0 ? 'Tahmini yıllık tasarruf' : 'Tahmini yıllık ek maliyet') + ' · ' + A.name + ', ' + B.name + ' yerine · ' + sc.demand + ' sefer/gün';
   var cmpRows = [['km başına', function (c) { return c.perKm; }, 2], ['Sefer başına', function (c) { return c.perTrip; }, 2], ['Yıllık filo (' + 'tüm araçlar' + ')', function (c) { return c.fleet; }, 0]];
-  $('cmpGrid').innerHTML = '<div class="cm-h"></div>' + [A, B].map(function (c) { return '<div class="cm-h" style="--c:' + esc(c.color) + '"><span class="nm"><i></i>' + esc(c.name) + '</span>' + fleetCtl(c, veh(c.id)) + '</div>'; }).join('') +
+  $('cmpGrid').innerHTML = '<div class="cm-h"></div>' + [A, B].map(function (c) { return '<div class="cm-h" style="--c:' + esc(c.color) + '"><span class="nm"><i></i>' + esc(c.name) + '</span></div>'; }).join('') +
     cmpRows.map(function (row) { var x = row[1](A), y = row[1](B), ax = x !== null && y !== null && x < y, by = x !== null && y !== null && y < x; return '<div class="cm-l">' + row[0] + '</div><div class="cm-v' + (ax ? ' win' : '') + '">' + money(x, row[2]) + '</div><div class="cm-v' + (by ? ' win' : '') + '">' + money(y, row[2]) + '</div>'; }).join('');
+  $('fleetRow').innerHTML = '<div class="fr-l">Araç sayısı</div>' + [A, B].map(function (c) { return '<div class="fr" style="--c:' + esc(c.color) + '"><span class="nm"><i></i>' + esc(c.name) + '</span>' + fleetCtl(c, veh(c.id)) + '</div>'; }).join('');
   $('rFoot').textContent = (wiOn ? 'What-if aktif · ' : '') + 'Geri ödeme: ' + K.breakEven.label + ' · ' + nf(rt.km, 1) + ' km tek yön (' + sourceName(rt.source) + ')';
   /* geri ödeme / toplam (Yatırım ve Geri Ödeme sekmesi) */
   var be = K.breakEven, bw = K.breakEvenWage, bsel = veh(K.b);
@@ -457,6 +465,9 @@ function draw() {
   ].join('');
   r.order.forEach(function (k) { var e = $('vsum-' + k); if (e) e.textContent = V[k].n + ' araç · ' + (V[k].perKm === null ? '—' : nf(V[k].perKm, 2)) + ' ' + ui.cur + '/km · yıllık ' + money(V[k].fleet); });
   document.querySelectorAll('[id^="vsum-"]').forEach(function (e) { var id = e.id.slice(5); if (!V[id]) e.textContent = ''; });
+  /* ana ekran: yalnızca yıllık maliyet çubuğu; bugün / sefer başı çubukları Detaylı Analiz > Özet'te */
+  $('lgYear').innerHTML = C.costBars($('yearBars'), r.order.map(function (id) { var c = V[id]; return { id: id, name: c.name, color: c.color, seg: segsOf(c, c.n), total: c.fleet, sub: c.n + ' araç' }; }), function (x) { return money(x, 0); });
+  $('sbT').textContent = $('rLbl').textContent; $('sbV').textContent = money(Math.abs(sav)) + (sav < 0 ? ' ek maliyet/yıl' : '/yıl');
   /* araç çubukları (canlı modda renderLive çizer) */
   if (ui.bm !== 'live') renderBars(r, null);
   /* maliyet dağılımı: km başına */
@@ -529,11 +540,12 @@ function copySummary() {
 var mq = window.matchMedia('(max-width: 900px)');
 function placeRoute() {
   var rc = $('routecard'), pill = $('pill'), clock = $('clockbox');
-  if (mq.matches) { $('panel').insertBefore(rc, $('ctrlCard')); $('mapctl').appendChild(pill); $('mapctl').appendChild(clock); }
+  if (mq.matches) { $('panel').insertBefore(rc, $('ctrlCard')); $('mapctl').insertBefore(pill, $('moreBtn')); $('mapctl').insertBefore(clock, $('moreBtn')); }
   else { $('mapcard').insertBefore(rc, $('hud')); $('mid').appendChild(clock); $('mid').appendChild(pill); }
   applyRouteOpen(); M.resize();
 }
 mq.addEventListener ? mq.addEventListener('change', placeRoute) : mq.addListener(placeRoute);
+mq.addEventListener ? mq.addEventListener('change', function () { setSheet(false); }) : 0;
 
 /* ---------- saklama ---------- */
 var saveT;

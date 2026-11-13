@@ -14,7 +14,7 @@ async function diffCount(px, a, b, boxes) {
     p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|net::/.test(m.text())) errs.push(m.text()); });
     await p.goto(url); await H.waitMap(p); await H.waitPlan(p); const px = await ctx.newPage(); await px.goto('about:blank');
     await p.click('#tcSkip').catch(() => {}); await p.evaluate(() => window.scrollTo(0, 0));
-    const mobile = dev.n === 'mobil';
+    const mobile = dev.n === 'mobil'; if (mobile) await p.click('#moreBtn');
     const modes = [['3d', async () => { await p.click('[data-view="3d"]'); }], ['ustten', async () => { await p.click('[data-view="top"]'); }], ['tum-rota', async () => { await p.click('[data-view="fit"]'); }], ['takip', async () => { await p.click('#followBtn'); }]];
     await p.evaluate(() => window.__app.setSim(70));
     for (const [name, act] of modes) {

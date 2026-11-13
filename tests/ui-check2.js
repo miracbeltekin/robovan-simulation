@@ -31,7 +31,7 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   const snap = () => p.evaluate(() => [...document.querySelectorAll('[data-f]')].filter(e => !['r.manualKm', 's.roadFactor'].includes(e.dataset.f)).map(e => e.dataset.f + '=' + e.value).join('|'));
   const s0 = await snap();
   await p.click('#presets [data-preset="2"]'); await p.waitForTimeout(100); await p.selectOption('#cityPick', 'Konya'); await p.click('#cityAdd'); await p.waitForTimeout(100);
-  await p.click('#modeManual'); await p.locator('[data-f="r.manualKm"]').fill('12'); await p.click('#modeRoute'); await p.selectOption('#selB', 'robovan'); await p.selectOption('#selB', 'conventional'); await p.selectOption('#cur', '€'); await p.selectOption('#cur', '$'); await p.waitForTimeout(150);
+  await p.click('#modeManual'); await p.locator('[data-f="r.manualKm"]').fill('12'); await p.click('#modeRoute'); await p.selectOption('#cur', '€'); await p.selectOption('#cur', '$'); await p.waitForTimeout(150);
   ok('G2 Rota, mod, taban, para birimi değişince diğer girişler korunuyor', (await snap()) === s0);
   await p.reload(); await p.waitForTimeout(400); const s1 = await snap(); const d0 = s0.split('|'), d1 = s1.split('|'); ok('G3 Yenileme sonrası da korunuyor (yerel saklama)', s1 === s0, d0.filter((x, i) => x !== d1[i]).slice(0, 5).join(', ') + ' => ' + d1.filter((x, i) => x !== d0[i]).slice(0, 5).join(', '));
   /* 3. Grafik ↔ KPI tutarlılığı */
@@ -69,7 +69,7 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   ok('H3 Sonuç etiketleri "Tahmini" ile başlıyor', (await p.textContent('#rSub')).startsWith('Tahmini') && true);
   ok('H4 "GÖSTERİM" etiketi sonuç kartında var', (await p.textContent('#resultCard')).includes('GÖSTERİM'));
   const c1 = await b.newContext({ ...devices['iPhone 13'] }); await H.blockAllExternal(c1); const mp = await c1.newPage(); await mp.goto(url); await mp.waitForTimeout(400);
-  await mp.evaluate(() => document.getElementById('scopeNote').scrollIntoView()); ok('H5 Mobilde kontrollü alan uyarısı görünür', (await mp.isVisible('#scopeNote')));
+  await mp.click('#sumBar'); await mp.waitForTimeout(600); await mp.evaluate(() => document.getElementById('scopeNote').scrollIntoView()); ok('H5 Mobilde kontrollü alan uyarısı görünür', (await mp.isVisible('#scopeNote')));
   /* 5. Anahtarsız: tüm KPI sayısal */
   const kp = await mp.$$eval('#rBig', e => e.map(x => x.textContent)); ok('I1 Anahtarsız: KPI değerleri sayısal', kp.every(t => /\d/.test(t)), kp.join(' '));
   ok('I2 Sayfa hatası yok', errs.length === 0, errs.join(';'));

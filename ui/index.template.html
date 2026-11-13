@@ -52,7 +52,7 @@
       <button data-view="3d" class="mc">3D</button><button data-view="top" class="mc">Üstten</button><button data-view="fit" class="mc">Tüm rota</button>
       <button id="followBtn" class="mc" aria-pressed="false">Aracı takip et</button>
     </div>
-    <div class="mapctl" id="mapctl"></div>
+    <div class="mapctl" id="mapctl"><button type="button" class="mc more-btn" id="moreBtn" aria-pressed="false" aria-label="Harita görünüm düğmelerini aç/kapat">⋯</button></div>
     <div class="maptip" id="maptip" hidden></div>
     <div class="routecard card" id="routecard">
       <div class="rc-head"><b>Rota ve duraklar</b>
@@ -83,6 +83,7 @@
   </section>
 
   <aside class="panel" id="panel" aria-label="Sonuçlar ve parametreler">
+    <button type="button" class="sumbar" id="sumBar" aria-expanded="false" aria-controls="panel"><span class="sb-grip" aria-hidden="true"></span><span class="sb-t" id="sbT">—</span><span class="sb-v" id="sbV">—</span><span class="sb-c" aria-hidden="true">⌃</span></button>
     <div class="card tipcard" id="tipcard">
       <div class="tc-top"><span id="tcStep">Adım 1 / 3</span><span class="dots" id="tcDots"></span></div>
       <h3 id="tcTitle">Rotayı seçin</h3><p id="tcText"></p>
@@ -92,35 +93,33 @@
     <div class="card result" id="resultCard">
       <div class="r-top"><div class="r-main"><div class="lbl" id="rLbl">Tahmini yıllık tasarruf</div><div class="big" id="rBig">—</div><div class="r-sub" id="rSub">—</div></div></div>
       <div class="pair" id="pair"><label class="sr" for="selA">Birinci araç</label><select id="selA" class="sel" aria-label="Karşılaştırılan birinci araç"></select><span class="vs">ile</span><label class="sr" for="selB">İkinci araç</label><select id="selB" class="sel" aria-label="Karşılaştırılan ikinci araç"></select></div>
+      <div class="fleet-row" id="fleetRow"></div>
       <div class="cmp" id="cmpGrid"></div>
       <p class="small muted" id="cmpNote" hidden></p>
       <div class="r-foot"><span class="tag">GÖSTERİM</span><span id="rFoot">—</span></div>
     </div>
 
-    <div class="card" id="whyCard">
-      <div class="c-head"><b>Neden bu sonuç?</b><span class="muted small">km başına maliyet farkı</span></div>
-      <p class="why-head" id="whyHead">—</p><div class="why-items" id="whyItems"></div><div class="why-rank" id="whyRank"></div>
-    </div>
 
-    <div class="card" id="wiCard">
-      <div class="c-head"><b>Ya olursa?</b><span class="muted small">senaryo seçin</span></div>
-      <div class="chips" id="wiChips" role="group" aria-label="What-if senaryoları"><button data-wi="fuel" aria-pressed="false">Dizel yakıt +%20</button><button data-wi="driver" aria-pressed="false">Sürücü maliyeti +%30</button><button data-wi="ratio" aria-pressed="false">Operatör başına 10 araç</button><button data-wi="price" aria-pressed="false">Robovan fiyatı −%10</button></div>
-      <div class="live-d wi-res" id="wiRes"></div>
+
+    <div class="card" id="yearCard">
+      <div class="c-head"><b>Yıllık maliyet</b><span class="muted small">tüm araçlar, bir yıl</span></div>
+      <div class="cbars" id="yearBars"></div><div class="legend" id="lgYear"></div>
     </div>
 
     <div class="card" id="ctrlCard">
-      <div class="c-head"><b>Sonucu etkileyen ana değerler</b></div>
+      <div class="c-head"><b>Neyi değiştirebilirim?</b><span class="muted small">sonuç anında güncellenir</span></div>
       <div id="sliders" class="sliders"></div>
+      <div class="chips-h">Ya olursa?</div>
+      <div class="chips" id="wiChips" role="group" aria-label="What-if senaryoları"><button data-wi="fuel" aria-pressed="false">Dizel yakıt +%20</button><button data-wi="driver" aria-pressed="false">Sürücü maliyeti +%30</button><button data-wi="ratio" aria-pressed="false">Operatör başına 10 araç</button><button data-wi="price" aria-pressed="false">Robovan fiyatı −%10</button></div>
+      <div class="live-d wi-res" id="wiRes"></div>
       <button class="gpill wide" id="myNums3">Tüm değerleri düzenle</button>
     </div>
 
-    <div class="card" id="barCard">
-      <div class="c-head"><b>Araç maliyet karşılaştırması</b></div>
-      <div class="seg3" role="group" aria-label="Çubuk görünümü"><button data-bm="live" aria-pressed="true">Canlı sefer</button><button data-bm="trip" aria-pressed="false">Sefer başına</button><button data-bm="year" aria-pressed="false">Yıllık filo</button></div>
-      <div class="cbars" id="costBars"></div><div class="legend" id="lgBars"></div>
-      <div class="live-d" id="liveDiff"></div>
-      <p class="small muted" id="barNote"></p>
-    </div>
+    <details class="card fold" id="whyCard">
+      <summary><b>Neden bu sonuç?</b><span class="muted small">km başına fark</span></summary>
+      <p class="why-head" id="whyHead">—</p><div class="why-items" id="whyItems"></div><div class="why-rank" id="whyRank"></div>
+    </details>
+
 
     <button class="cream wide3" id="goAnalysis">Detaylı analiz ve raporlar ↓</button>
     <div class="disclaimer" id="scopeNote"><b>Robovan yalnızca trafiğe kapalı, kontrollü alanlarda çalışır;</b> haritadaki karayolu rotaları karşılaştırma içindir. Tasarruf tahminleri yalnızca örnek değerlerle yapılmış gösterimdir. Gerçek sonuçlar farklı olabilir ve garanti edilmez. Para birimi seçimi yalnızca etikettir.</div>
@@ -139,6 +138,13 @@
     <button role="tab" id="tab-sens" data-tab="sens" aria-selected="false" aria-controls="pn-sens">Duyarlılık</button>
   </div>
   <div class="tabpanel" role="tabpanel" id="pn-sum" aria-labelledby="tab-sum">
+    <div class="card" id="barCard">
+      <div class="c-head"><b>Araç maliyet karşılaştırması</b></div>
+      <div class="seg3" role="group" aria-label="Çubuk görünümü"><button data-bm="live" aria-pressed="true">Canlı sefer</button><button data-bm="trip" aria-pressed="false">Sefer başına</button><button data-bm="year" aria-pressed="false">Yıllık filo</button></div>
+      <div class="cbars" id="costBars"></div><div class="legend" id="lgBars"></div>
+      <div class="live-d" id="liveDiff"></div>
+      <p class="small muted" id="barNote"></p>
+    </div>
     <h3>İki aracın temel karşılaştırması</h3>
     <div class="twrap"><table id="sumTable"></table></div>
     <h3>Operasyon göstergeleri</h3><p class="sub">Araç sayısı, kilometre, kapasite, personel ve enerji. Filo toplamlarıdır.</p>
