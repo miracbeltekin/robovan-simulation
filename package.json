@@ -1,13 +1,13 @@
 {
   "name": "robovan-sim",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Robovan Maliyet Simülatörü: motor, arayüz, testler. Çıktı tek dosya: dist/index.html",
   "scripts": {
     "build": "node tools/build-ui.js",
     "test": "node tests/run.js && node tests/run.js dist/engine.bundle.js",
     "test:independent": "node tests/dump-engine.js > dump.json && python3 tests/independent_check.py dump.json",
-    "test:ui": "node tests/ui-check.js $PWD/dist/index.html && node tests/ui-check2.js $PWD/dist/index.html && node tests/ui-check3.js $PWD/dist/index.html && node tests/ui-check4.js $PWD/dist/index.html && node tests/ui-check5.js $PWD/dist/index.html",
+    "test:ui": "node tests/ui-check.js $PWD/dist/index.html && node tests/ui-check2.js $PWD/dist/index.html && node tests/ui-check3.js $PWD/dist/index.html && node tests/ui-check4.js $PWD/dist/index.html && node tests/ui-check5.js $PWD/dist/index.html && node tests/mode-check.js $PWD/dist/index.html",
     "test:render": "node tests/render-real.js $PWD/dist/index.html"
   }
 }

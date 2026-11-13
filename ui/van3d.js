@@ -140,11 +140,14 @@ function create(opts) {
       if (!list.length) return;
       sync();
       renderer.resetState();
-      var zoom = map.getZoom(), vis = Math.max(3.4, Math.min(300, Math.pow(2, 17.4 - zoom)));   /* görünür kalsın: yakında 3,4×, uzakta büyür */
+      /* ölçek: araç ekranda yaklaşık TARGET_PX uzunluğunda kalır (tüm rota görünümünde de okunur), yakınlaştıkça gerçek boyuta iner
+         (en az MIN_VIS×, ≈ gerçek boyutun 3 katı) ve aşırı büyümez; böylece her kamera modunda aynı 3D model okunabilir boyutta çizilir */
+      var zoom = map.getZoom(), TARGET_PX = opts && opts.targetPx || 46, MIN_VIS = 3, MAX_VIS = 4000;
       list.forEach(function (v) {
         var o = objs[v.id]; if (!o) return;
         scene.children.forEach(function (c) { if (c.isGroup) c.visible = false; }); o.g.visible = true;
         o.g.userData.wheels.forEach(function (w) { w.rotation.x = v.spin || 0; });
+        var mpp = 78271.517 * Math.cos(v.lat * Math.PI / 180) / Math.pow(2, zoom), vis = Math.max(MIN_VIS, Math.min(MAX_VIS, TARGET_PX * mpp / 5.4)); v.vis = vis; v.lenPx = 5.4 * vis / mpp;
         var mc = ML.MercatorCoordinate.fromLngLat([v.lng, v.lat], 0), s = mc.meterInMercatorCoordinateUnits() * vis;
         var rotZ = new THREE.Matrix4().makeRotationZ(-v.brg * Math.PI / 180);
         var l = new THREE.Matrix4().makeTranslation(mc.x, mc.y, mc.z).scale(new THREE.Vector3(s, -s, s)).multiply(rotZ).multiply(new THREE.Matrix4().makeTranslation(v.off || 0, 0, 0));
@@ -157,11 +160,11 @@ function create(opts) {
   return {
     layer: layer,
     /* vs: [{id,type:'robovan'|'conventional',color,lng,lat,brg,off,spin}] */
-    setAll: function (vs) { list = vs.map(function (v) { return { id: v.id, type: v.type, color: v.color, lng: v.lng, lat: v.lat, brg: v.brg, off: v.off || 0, spin: v.spin || 0 }; }); if (map) map.triggerRepaint(); },
+    setAll: function (vs) { var prev = {}; list.forEach(function (o) { prev[o.id] = o; }); list = vs.map(function (v) { return { vis: prev[v.id] && prev[v.id].vis, lenPx: prev[v.id] && prev[v.id].lenPx, id: v.id, type: v.type, color: v.color, lng: v.lng, lat: v.lat, brg: v.brg, off: v.off || 0, spin: v.spin || 0 }; }); if (map) map.triggerRepaint(); },
     hide: function () { list = []; if (map) map.triggerRepaint(); },
     setSimple: function (v) { simple = !!v; if (map) map.triggerRepaint(); },
     isSimple: function () { return simple; },
-    state: function () { return { simple: simple, vehicles: list.map(function (v) { return { id: v.id, type: v.type, color: v.color, lng: v.lng, lat: v.lat, brg: v.brg, off: v.off, spin: v.spin }; }) }; }
+    state: function () { return { simple: simple, vehicles: list.map(function (v) { return { id: v.id, type: v.type, color: v.color, lng: v.lng, lat: v.lat, brg: v.brg, off: v.off, spin: v.spin, vis: v.vis, lenPx: v.lenPx }; }) }; }
   };
 }
 

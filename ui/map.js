@@ -128,7 +128,7 @@ M.init = function (opts) {
     if (MOBILE || window.innerWidth < 900) setTimeout(function () { var e = document.querySelector('#' + M.container + ' .maplibregl-ctrl-attrib'); if (e) e.classList.remove('maplibregl-compact-show'); }, 6000);   /* telefonda atıf 6 sn açık kalır, sonra ⓘ simgesine küçülür */
     var first = true;
     map.on('style.load', function () {
-      M.ready = true; addLayers(); drawAll();
+      M.ready = true; try { map.setPadding(pad()); } catch (e) {} addLayers(); drawAll();
       if (first) { first = false; setState('ready'); }
     });
     map.on('error', function (e) {
@@ -194,15 +194,16 @@ function drawRoute() {
 function showVehicle() { if (!M.map || !M.ready) return; placeVehicles(); }
 M.setWaypoints = function (wps) { M.wps = wps; M.park = wps.length ? { at: [wps[0].lon, wps[0].lat], brg: wps.length > 1 ? bearing([wps[0].lon, wps[0].lat], [wps[1].lon, wps[1].lat]) : 0 } : null; drawStops(); if (!M.tl) placeVehicles(); if (!M.rdata || M.rdata.kind !== 'road') drawRoute(); };
 M.setRoute = function (r) { M.rdata = r; M.tl = r && r.kind === 'road' && r.coords && r.coords.length > 1 ? buildGeom(r.coords) : null; drawRoute(); placeVehicles(); };
-M.resize = function () { if (M.map) M.map.resize(); };
+M.resize = function () { if (M.map) { M.map.resize(); try { M.map.setPadding(pad()); } catch (e) {} } };
 M.setAddMode = function (on) { M.addMode = on; if (M.map) M.map.getCanvas().style.cursor = on ? 'crosshair' : ''; };
+/* haritanın kontrollerle (üst düğmeler, rota kartı, canlı panel) örtülmeyen serbest alanı: araçlar her kamera modunda bu alanda kalır */
+function pad() { return window.innerWidth < 900 ? { top: 108, bottom: 168, left: 40, right: 56 } : { top: 90, bottom: 235, left: 380, right: 70 }; }
 M.setFollow = function (on) { M.follow = on; if (on && M.tl && M.map) { M.followB = M.map.getBearing(); var c = followCenter(); M.map.easeTo({ center: c.center, zoom: c.zoom, pitch: 62, duration: 900 }); M.followZ = c.zoom; } };
 M.center = function () { if (!M.map) return null; var c = M.map.getCenter(); return [c.lng, c.lat]; };
 M.fit = function () {
   if (!M.map || !M.ready) return; var pts = (M.rdata && M.rdata.kind === 'road') ? M.rdata.coords : M.wps.map(function (w) { return [w.lon, w.lat]; });
   if (!pts.length) return; var b = new root.maplibregl.LngLatBounds(pts[0], pts[0]); pts.forEach(function (p) { b.extend(p); });
-  var mobile = window.innerWidth < 900;
-  M.map.fitBounds(b, { padding: mobile ? { top: 110, bottom: 90, left: 70, right: 70 } : { top: 90, bottom: 150, left: 380, right: 70 }, pitch: M.map.getPitch(), bearing: M.map.getBearing(), maxZoom: 15, duration: 1200 });
+  M.map.fitBounds(b, { padding: 28, pitch: M.map.getPitch(), bearing: M.map.getBearing(), maxZoom: 15, duration: 1200 });
 };
 M.view = function (mode) {
   if (!M.map || !M.ready) return;
@@ -249,6 +250,7 @@ function placeVehicles() {
     keep[v.id] = 1;
     var lb = M.labels[v.id];
     if (!lb) { var e = el('<div class="mk-label"><i></i><span></span></div>'); lb = M.labels[v.id] = new root.maplibregl.Marker({ element: e, anchor: 'bottom', offset: [0, -34 - i * 24] }).setLngLat(p).addTo(M.map); }
+    var vs = M.van && M.van.state().vehicles.filter(function (q) { return q.id === v.id; })[0], oy = -Math.max(34, (vs && vs.lenPx ? vs.lenPx * 0.55 : 0) + 16) - i * 24; if (lb._oy !== oy) { lb._oy = oy; lb.setOffset([0, oy]); }   /* etiket, büyüyen araç gövdesinin üstünde kalır */
     lb.setLngLat(p); var e2 = lb.getElement(); e2.firstChild.style.background = v.color; e2.lastChild.textContent = v.label;
   });
   Object.keys(M.labels).forEach(function (k) { if (!keep[k]) { M.labels[k].remove(); delete M.labels[k]; delete M.pos[k]; delete M.hdg[k]; } });
