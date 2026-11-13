@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#08090B">
+<link rel="icon" type="image/png" href="/*__FAVICON__*/">
+<title>Robovan Maliyet Simülatörü</title>
+<style>
+/*__FONTS__*/
+</style>
+<style>
+/*__MAPLIBRE_CSS__*/
+</style>
+<style>
+/*__CSS__*/
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="top">
+  <div class="brand"><img class="logo" src="/*__LOGO__*/" alt="Tripy Robovan" width="99" height="40"><span class="chip">SİMÜLATÖR</span></div>
+  <div class="mid" id="mid">
+    <span class="routechip" id="routeChip">—</span>
+    <div class="clockbox" id="clockbox"><span class="clock" id="clock" title="Simülasyon saati (06:00'da başlar)">06:00</span><span class="elapsed" id="elapsed" title="Geçen simülasyon süresi">0 sa 00 dk</span></div>
+    <div class="pill" id="pill" role="group" aria-label="Simülasyon kontrolleri">
+      <button id="pp" aria-label="Oynat" title="Oynat / duraklat / devam">▶</button><button id="rs" aria-label="Sıfırla" title="Simülasyonu 06:00'a sıfırla">↺</button>
+      <button class="sp" data-sp="1" aria-pressed="true" title="1 simülasyon dakikası = 1 gerçek saniye">×1</button><button class="sp" data-sp="3" aria-pressed="false" title="3 simülasyon dakikası = 1 gerçek saniye">×3</button><button class="sp" data-sp="6" aria-pressed="false" title="6 simülasyon dakikası = 1 gerçek saniye">×6</button>
+    </div>
+  </div>
+  <div class="tools">
+    <button id="myNums" class="gpill">Rakamlarım</button>
+    <select id="cur" class="sel" aria-label="Para birimi etiketi"><option value="$">$</option><option value="€">€</option><option value="₺">₺</option></select>
+    <button id="copy" class="cream">Özeti Kopyala</button>
+  </div>
+</header>
+
+<main class="console">
+  <section class="mapcard" id="mapcard" aria-label="Rota haritası">
+    <div id="map" class="map"></div>
+    <div class="mapstate" id="mapstate">
+      <div class="msbox">
+        <b id="msTitle">Harita yükleniyor</b>
+        <p id="msText">OpenStreetMap haritası (OpenFreeMap) indiriliyor…</p>
+        <div class="msrow"><button class="cream" id="mapRetry" hidden>Yeniden dene</button></div>
+        <p class="small muted">Harita için anahtar gerekmez.</p>
+      </div>
+    </div>
+    <div class="mapbar" id="mapbar" role="toolbar" aria-label="Harita görünümü">
+      <button data-view="3d" class="mc">3D</button><button data-view="top" class="mc">Üstten</button><button data-view="fit" class="mc">Tüm rota</button>
+      <button id="followBtn" class="mc" aria-pressed="false">Aracı takip et</button>
+    </div>
+    <div class="mapctl" id="mapctl"></div>
+    <div class="maptip" id="maptip" hidden></div>
+    <div class="routecard card" id="routecard">
+      <div class="rc-head"><b>Rota ve duraklar</b>
+        <div class="seg2" role="group" aria-label="Mesafe kaynağı"><button id="modeRoute" aria-pressed="true">Rotadan</button><button id="modeManual" aria-pressed="false">Elle mesafe</button></div>
+        <button id="rcToggle" class="rctoggle" aria-expanded="false" aria-controls="rcBody" title="Rota kartını daralt veya genişlet"><span id="rcToggleTxt">Genişlet</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+      <div class="rc-sum" id="rcSum"></div>
+      <div id="rcBody">
+      <div id="routeBody">
+        <div class="wps" id="wps"></div>
+        <div class="addrow"><select id="cityPick" class="dd" aria-label="Şehir seç"></select><button id="cityAdd" class="mini">Ekle</button></div>
+        <div class="addrow"><input id="addr" class="txt" placeholder="Adres ara (OpenStreetMap)" autocomplete="off"><button id="addrGo" class="mini">Ara</button></div>
+        <button id="addBtn" class="mini wide2" aria-pressed="false">+ Haritadan durak ekle</button>
+        <div id="sugg"></div>
+        <div class="presets" id="presets"></div>
+      </div>
+      <div id="manualBox" class="fld" hidden><label for="r.manualKm">Tek yön mesafe</label><div class="inp"><input id="r.manualKm" data-f="r.manualKm" inputmode="decimal" autocomplete="off"><span class="u">km</span></div></div>
+      <div class="rc-res" id="rcRes" aria-live="polite"></div>
+      <div class="fld sm" id="rfBox"><label for="s.roadFactor">Yol katsayısı (kuş uçuşu tahmini için)</label><div class="inp"><input id="s.roadFactor" data-f="s.roadFactor" inputmode="decimal" autocomplete="off"><span class="u">×</span></div></div>
+      </div>
+    </div>
+    <div class="hud" id="hud" aria-live="off"><div class="hud-h"><b id="hudClock">06:00</b><span id="hudEl">0 sa 00 dk</span><span class="hud-st" id="hudSt">Hazır</span></div><div class="hud-rows" id="hudRows"></div><div class="hud-d" id="hudDiff"></div></div>
+    <div class="timeline" id="timeline">
+      <input type="range" id="tl" min="0" max="1000" value="0" aria-label="Sefer ilerlemesi">
+      <div class="tl-t" id="tlTxt">Simülasyon için geçerli girdi gerekir</div>
+    </div>
+    <div class="mapnote" id="mapnote"><b>Robovan yalnızca trafiğe kapalı, kontrollü alanlarda çalışır.</b> Araç hareketi gösterim amaçlıdır. Rakamlar örnek varsayımlara dayanır.</div>
+  </section>
+
+  <aside class="panel" id="panel" aria-label="Sonuçlar ve parametreler">
+    <div class="card tipcard" id="tipcard">
+      <div class="tc-top"><span id="tcStep">Adım 1 / 3</span><span class="dots" id="tcDots"></span></div>
+      <h3 id="tcTitle">Rotayı seçin</h3><p id="tcText"></p>
+      <div class="tc-act"><button class="cream sm" id="tcNext">İleri</button><button class="link" id="tcSkip">Atla</button></div>
+    </div>
+
+    <div class="card result" id="resultCard">
+      <div class="r-top"><div class="r-main"><div class="lbl" id="rLbl">Tahmini yıllık tasarruf</div><div class="big" id="rBig">—</div><div class="r-sub" id="rSub">—</div></div></div>
+      <div class="pair" id="pair"><label class="sr" for="selA">Birinci araç</label><select id="selA" class="sel" aria-label="Karşılaştırılan birinci araç"></select><span class="vs">ile</span><label class="sr" for="selB">İkinci araç</label><select id="selB" class="sel" aria-label="Karşılaştırılan ikinci araç"></select></div>
+      <div class="cmp" id="cmpGrid"></div>
+      <div class="r-foot"><span class="tag">GÖSTERİM</span><span id="rFoot">—</span></div>
+    </div>
+
+    <div class="card" id="ctrlCard">
+      <div class="c-head"><b>Sonucu etkileyen ana değerler</b></div>
+      <div id="sliders" class="sliders"></div>
+      <button class="gpill wide" id="myNums3">Tüm değerleri düzenle</button>
+    </div>
+
+    <div class="card" id="barCard">
+      <div class="c-head"><b>Araç maliyet karşılaştırması</b></div>
+      <div class="seg3" role="group" aria-label="Çubuk görünümü"><button data-bm="live" aria-pressed="true">Canlı sefer</button><button data-bm="trip" aria-pressed="false">Sefer başına</button><button data-bm="year" aria-pressed="false">Yıllık filo</button></div>
+      <div class="cbars" id="costBars"></div><div class="legend" id="lgBars"></div>
+      <div class="live-d" id="liveDiff"></div>
+      <p class="small muted" id="barNote"></p>
+    </div>
+
+    <button class="cream wide3" id="goAnalysis">Detaylı analiz ve raporlar ↓</button>
+    <div class="disclaimer" id="scopeNote"><b>Robovan yalnızca trafiğe kapalı, kontrollü alanlarda çalışır;</b> haritadaki karayolu rotaları karşılaştırma içindir. Tasarruf tahminleri yalnızca örnek değerlerle yapılmış gösterimdir. Gerçek sonuçlar farklı olabilir ve garanti edilmez. Para birimi seçimi yalnızca etikettir.</div>
+  </aside>
+</main>
+
+<div class="warns wrapx" id="warns" aria-live="polite"></div>
+
+<section class="analysis wrapx" id="analysis">
+  <h2>Detaylı Analiz</h2>
+  <p class="sub">Grafikler, tablolar ve haritadaki rota aynı hesap motorundan beslenir. Seçili karşılaştırma: <b id="anPair">—</b>.</p>
+  <div class="tabs" role="tablist" aria-label="Analiz bölümleri" id="anTabs">
+    <button role="tab" id="tab-sum" data-tab="sum" aria-selected="true" aria-controls="pn-sum">Özet</button>
+    <button role="tab" id="tab-dist" data-tab="dist" aria-selected="false" aria-controls="pn-dist">Maliyet Dağılımı</button>
+    <button role="tab" id="tab-inv" data-tab="inv" aria-selected="false" aria-controls="pn-inv">Yatırım ve Geri Ödeme</button>
+    <button role="tab" id="tab-sens" data-tab="sens" aria-selected="false" aria-controls="pn-sens">Duyarlılık</button>
+  </div>
+  <div class="tabpanel" role="tabpanel" id="pn-sum" aria-labelledby="tab-sum">
+    <h3>İki aracın temel karşılaştırması</h3>
+    <div class="twrap"><table id="sumTable"></table></div>
+    <h3>Operasyon göstergeleri</h3><p class="sub">Araç sayısı, kilometre, kapasite, personel ve enerji. Filo toplamlarıdır.</p>
+    <div class="twrap"><table id="opsTable"></table></div>
+  </div>
+  <div class="tabpanel" role="tabpanel" id="pn-dist" aria-labelledby="tab-dist" hidden>
+    <h3>km başına maliyet dağılımı</h3><p class="sub">Enerji/yakıt, bakım, personel, sermaye ve sabit giderler.</p>
+    <div class="card gcard"><div class="cbars" id="chDist"></div><div class="legend" id="lgDist"></div></div>
+    <h3>Ayrıntılı maliyet tablosu</h3><p class="sub">Tutarlar seçili para birimi etiketiyle gösterilir.</p>
+    <div class="twrap"><table id="table"></table></div>
+  </div>
+  <div class="tabpanel" role="tabpanel" id="pn-inv" aria-labelledby="tab-inv" hidden>
+    <h3>Geri ödeme ve toplam maliyet</h3>
+    <div class="stats" id="extra"></div>
+    <div class="card gcard"><div class="c-head"><b>Birikimli maliyet ve başa baş</b><span class="muted small">filo, alış + işletme</span></div><div class="chartbox" id="chCum"></div><div class="legend" id="lgVeh"></div><p class="small muted" id="cumNote"></p></div>
+  </div>
+  <div class="tabpanel" role="tabpanel" id="pn-sens" aria-labelledby="tab-sens" hidden>
+    <div class="card gcard">
+      <div class="c-head wrapc"><b>Tasarruf ve senaryo duyarlılığı</b>
+        <div class="row2"><label class="sr" for="sensParam">Parametre</label><select id="sensParam" class="sel"></select><label class="sr" for="sensMetric">Gösterge</label><select id="sensMetric" class="sel"></select></div></div>
+      <div class="chartbox" id="chSens"></div><div class="legend" id="lgVeh2"></div><p class="small muted" id="sensNote"></p>
+    </div>
+  </div>
+</section>
+
+<footer class="foot wrapx"><span>Robovan Maliyet Simülatörü · Tripy Mobility. Ayarlar yalnızca bu tarayıcıda saklanır. Harita: © OpenStreetMap katkıcıları, OpenFreeMap.</span></footer>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" hidden role="dialog" aria-label="Rakamlarım" aria-modal="true">
+  <div class="sh-head"><h2>Rakamlarım</h2><button class="iconx" id="sheetClose" aria-label="Kapat">×</button></div>
+  <p class="small muted">Tüm değerler örnektir ve sonuçlar anında güncellenir. Hiçbir şey sunucuya gönderilmez.</p>
+  <div class="tabs sh-tabs" role="tablist" aria-label="Değer grupları" id="shTabs">
+    <button role="tab" data-st="ops" aria-selected="true">Operasyon</button><button role="tab" data-st="robovan" aria-selected="false">Robovan</button><button role="tab" data-st="conventional" aria-selected="false">Geleneksel Van</button><button role="tab" data-st="adv" aria-selected="false">Gelişmiş</button>
+  </div>
+  <div class="shpanel" id="sp-ops">
+    <div class="fields" id="scFields"></div>
+    <div class="fields"><div class="fld"><label for="roundTrip">Sefer türü</label><div class="inp"><select id="roundTrip"><option value="1">Gidiş + dönüş</option><option value="0">Tek yön</option></select></div><div class="hint">Gidiş-dönüşte sefer mesafesi iki katıdır.</div></div></div>
+    <div class="distnote" id="distNote"></div>
+  </div>
+  <div class="shpanel" id="sp-robovan" hidden><div class="vlist" id="vl-robovan"></div><div class="fleet-add"><button class="gpill" id="addRobo">+ Robovan modeli ekle</button><span class="muted small" id="fleetCount"></span></div></div>
+  <div class="shpanel" id="sp-conventional" hidden><div class="vlist" id="vl-conventional"></div><div class="fleet-add"><button class="gpill" id="addConv">+ Geleneksel van modeli ekle</button></div></div>
+  <div class="shpanel" id="sp-adv" hidden><h3>Senaryo</h3><div class="fields" id="advFields"></div><h3>Araç ayrıntıları</h3><div class="vlist" id="vl-adv"></div></div>
+  <div class="sh-foot"><button class="gpill" id="reset">Varsayılanlara Dön</button><button class="cream" id="sheetDone">Tamam</button></div>
+</aside>
+
+</div>
+<script>
+/*__MAPLIBRE__*/
+</script>
+<script>window.__cw=console.warn;console.warn=function(){};</script>
+<script>
+/*__THREE__*/
+</script>
+<script>console.warn=window.__cw;</script>
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+/*__DATA__*/
+</script>
+<script>
+/*__DEMO__*/
+</script>
+<script>
+/*__VAN3D__*/
+</script>
+<script>
+/*__MAP__*/
+</script>
+<script>
+/*__CHARTS__*/
+</script>
+<script>
+/*__APP__*/
+</script>
+</body>
+</html>

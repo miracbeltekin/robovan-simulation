@@ -1,0 +1,3 @@
+const { chromium } = require('playwright'); const H = require('./helpers');
+(async()=>{const b=await chromium.launch({args:H.ARGS});const c=await b.newContext({viewport:{width:1024,height:900}});await H.stubServices(c,{});const q=await c.newPage();await q.goto('file://'+process.argv[2]);await H.waitMap(q);await H.waitPlan(q);await q.waitForTimeout(500);
+console.log(await q.evaluate(()=>['#pill','#mapbar','#hud','#timeline','#routecard','#mapnote','#mapcard'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return s+' '+[r.left,r.top,r.right,r.bottom].map(Math.round)}).join('\n')));await b.close()})();
