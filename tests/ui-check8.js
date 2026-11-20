@@ -16,6 +16,11 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   ok('S6 Çiplerin "Neyi değiştirebilirim?" kartında (tek yerde)', (await p.locator('#ctrlCard [data-wi]').count()) === 4 && (await p.locator('#wiCard').count()) === 0);
   ok('S7 İpucu kartı artık görünmez', await p.isHidden('#tipcard')); ok('S8 Mobil özet çubuğu ve ⋯ masaüstünde gizli', (await p.isHidden('#sumBar')) && (await p.isHidden('#moreBtn')));
   await ctx.close();
+  /* üretim varsayılanı: Detaylı analiz kapalı (test kancası olmadan) */
+  { const pc = await b.newContext({ viewport: { width: 1440, height: 900 } }); const pp = await pc.newPage(); await pc.route('**/*', r => { const u = r.request().url(); if (u.startsWith('file:') || u.startsWith('data:') || u.startsWith('blob:')) return r.continue(); return r.abort('failed'); });
+    await pp.goto(url.startsWith('http') ? url : url); await pp.waitForTimeout(1500);
+    const d0 = await pp.isHidden('#anBody'); await pp.click('#anToggle'); await pp.waitForTimeout(300); const d1 = await pp.isVisible('#anBody') && (await pp.getAttribute('#anToggle', 'aria-expanded')) === 'true'; await pp.waitForTimeout(400); await pp.reload(); await pp.waitForTimeout(900); const d2 = await pp.isVisible('#anBody'); await pp.click('#anToggle'); const d3 = await pp.isHidden('#anBody');
+    ok('S9 Detaylı analiz varsayılan kapalı (tek çubuk); açılır, yenilemede korunur, tekrar kapanır', d0 && d1 && d2 && d3, JSON.stringify([d0, d1, d2, d3])); await pc.close(); }
   /* mobil */
   ctx = await b.newContext({ ...devices['iPhone 13'], viewport: { width: 390, height: 664 } }); await H.stubServices(ctx); p = await ctx.newPage(); await p.goto(url); await H.waitMap(p); await H.waitPlan(p); await p.waitForTimeout(800);
   const g = await p.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(), vh = innerHeight; return { map: r('#mapcard').height / vh, sbT: document.getElementById('sbT').textContent, sbV: document.getElementById('sbV').textContent, barTop: r('#sumBar').top, vh, over: document.documentElement.scrollWidth - innerWidth, mapbar: getComputedStyle(document.getElementById('mapbar')).display, panelVis: getComputedStyle(document.getElementById('ctrlCard')).visibility }; });

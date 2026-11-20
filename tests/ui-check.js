@@ -20,7 +20,7 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   ok('A5 Servis yokken varsayılan rota DEMO kayıtlı rotayla: yıllık tasarruf ≈81.1 bin', (await p.textContent('#rBig')).includes('81.1'), await p.textContent('#rBig'));
   ok('A6 Rota rozeti "DEMO" (gerçek canlı rota gibi gösterilmiyor)', (await p.textContent('#rcRes')).includes('DEMO') && !(await p.textContent('#rcRes')).includes('Gerçek karayolu'), await p.textContent('#rcRes'));
   ok('A7 Mesafe 48,9 km (kayıtlı rota)', (await p.textContent('#rcRes')).includes('48,9'));
-  ok('A8 Karar kartı: Robovan daha ekonomik, üç ölçüde de önde', (await p.textContent('#rLbl')).includes('Robovan') && (await p.locator('#cmpGrid .cm-v.win').count()) === 3);
+  ok('A8 Karar kartı: Robovan daha ekonomik, iki ölçüde de önde', (await p.textContent('#rLbl')).includes('Robovan') && (await p.locator('#cmpGrid .cm-v.win').count()) === 2);
   ok('A9 Araç çubukları ve grafikler çizildi', (await p.locator('#costBars .cb').count()) === 2 && (await p.locator('#chCum svg path').count()) >= 2 && (await p.locator('#chSens svg path').count()) >= 2);
   // odak
   const inp = p.locator('[data-f="v.conventional.driver"]').first(); await p.click('#myNums'); await p.click('[data-st="conventional"]'); await inp.click(); await inp.fill(''); await inp.type('2500');

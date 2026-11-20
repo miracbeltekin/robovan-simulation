@@ -386,3 +386,9 @@ td.strong{font-weight:600}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 #tipcard{display:none!important}
+
+.an-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:56px;padding:0 var(--s3);border:1px solid var(--line2);border-radius:var(--r);background:var(--card);color:var(--ink);font-size:16px;font-weight:600}
+.an-toggle span{color:var(--muted);transition:transform .2s var(--ease)}.an-toggle[aria-expanded="true"] span{transform:rotate(180deg)}
+#anBody{padding-top:var(--s3)}
+.hr{padding:6px 0}.hr-v{gap:14px}
+.tag{white-space:nowrap;flex:none}

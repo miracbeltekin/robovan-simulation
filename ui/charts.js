@@ -9,7 +9,7 @@ function tip(el) { var t = el.querySelector('.tip'); if (!t) { t = document.crea
 
 /* ---- 1) Araç başına maliyet çubukları: kalem kalem yığılı. Veri doğrudan motordan veya canlı defterden gelir. ----
    items: [{id,name,model,color,seg:[enerji,bakım,personel,sermaye,sabit],total,sub}]; fmt: tutar biçimleyici; max: ortak ölçek (verilmezse en büyük toplam) */
-var COMPS = [['energy', 'Enerji', '--c-energy'], ['maint', 'Bakım + lastik', '--c-maint'], ['people', 'Personel', '--c-people'], ['cap', 'Amortisman + finansman', '--c-capital'], ['fixed', 'Sigorta, vergi, lisans', '--c-fixed']];
+var COMPS = [['energy', 'Enerji / yakıt', '--c-energy'], ['maint', 'Bakım ve lastik', '--c-maint'], ['people', 'Sürücü / operatör', '--c-people'], ['cap', 'Araç bedeli (değer kaybı + faiz)', '--c-capital'], ['fixed', 'Sigorta ve vergiler', '--c-fixed']];
 function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function costBars(el, items, fmt, max) {
   var mx = max || Math.max.apply(null, items.map(function (r) { return r.total || 0; }).concat([0]));

@@ -411,6 +411,12 @@ td.strong{font-weight:600}
 
 #tipcard{display:none!important}
 
+.an-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:56px;padding:0 var(--s3);border:1px solid var(--line2);border-radius:var(--r);background:var(--card);color:var(--ink);font-size:16px;font-weight:600}
+.an-toggle span{color:var(--muted);transition:transform .2s var(--ease)}.an-toggle[aria-expanded="true"] span{transform:rotate(180deg)}
+#anBody{padding-top:var(--s3)}
+.hr{padding:6px 0}.hr-v{gap:14px}
+.tag{white-space:nowrap;flex:none}
+
 
 </style>
 </head>
@@ -493,13 +499,13 @@ td.strong{font-weight:600}
       <div class="fleet-row" id="fleetRow"></div>
       <div class="cmp" id="cmpGrid"></div>
       <p class="small muted" id="cmpNote" hidden></p>
-      <div class="r-foot"><span class="tag">GÖSTERİM</span><span id="rFoot">—</span></div>
+      <div class="r-foot"><span class="tag">ÖRNEK</span><span id="rFoot">—</span></div>
     </div>
 
 
 
     <div class="card" id="yearCard">
-      <div class="c-head"><b>Yıllık maliyet</b><span class="muted small">tüm araçlar, bir yıl</span></div>
+      <div class="c-head"><b>Paranın gittiği yerler</b><span class="muted small">yıllık, tüm araçlar</span></div>
       <div class="cbars" id="yearBars"></div><div class="legend" id="lgYear"></div>
     </div>
 
@@ -526,6 +532,8 @@ td.strong{font-weight:600}
 <div class="warns wrapx" id="warns" aria-live="polite"></div>
 
 <section class="analysis wrapx" id="analysis">
+  <button type="button" class="an-toggle" id="anToggle" aria-expanded="false" aria-controls="anBody">Detaylı analiz ve raporlar <span aria-hidden="true">▾</span></button>
+  <div id="anBody" hidden>
   <h2>Detaylı Analiz</h2>
   <p class="sub">Grafikler, tablolar ve haritadaki rota aynı hesap motorundan beslenir. Seçili karşılaştırma: <b id="anPair">—</b>.</p>
   <div class="tabs" role="tablist" aria-label="Analiz bölümleri" id="anTabs">
@@ -564,6 +572,7 @@ td.strong{font-weight:600}
         <div class="row2"><label class="sr" for="sensParam">Parametre</label><select id="sensParam" class="sel"></select><label class="sr" for="sensMetric">Gösterge</label><select id="sensMetric" class="sel"></select></div></div>
       <div class="chartbox" id="chSens"></div><div class="legend" id="lgVeh2"></div><p class="small muted" id="sensNote"></p>
     </div>
+  </div>
   </div>
 </section>
 
@@ -1808,7 +1817,7 @@ function tip(el) { var t = el.querySelector('.tip'); if (!t) { t = document.crea
 
 /* ---- 1) Araç başına maliyet çubukları: kalem kalem yığılı. Veri doğrudan motordan veya canlı defterden gelir. ----
    items: [{id,name,model,color,seg:[enerji,bakım,personel,sermaye,sabit],total,sub}]; fmt: tutar biçimleyici; max: ortak ölçek (verilmezse en büyük toplam) */
-var COMPS = [['energy', 'Enerji', '--c-energy'], ['maint', 'Bakım + lastik', '--c-maint'], ['people', 'Personel', '--c-people'], ['cap', 'Amortisman + finansman', '--c-capital'], ['fixed', 'Sigorta, vergi, lisans', '--c-fixed']];
+var COMPS = [['energy', 'Enerji / yakıt', '--c-energy'], ['maint', 'Bakım ve lastik', '--c-maint'], ['people', 'Sürücü / operatör', '--c-people'], ['cap', 'Araç bedeli (değer kaybı + faiz)', '--c-capital'], ['fixed', 'Sigorta ve vergiler', '--c-fixed']];
 function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function costBars(el, items, fmt, max) {
   var mx = max || Math.max.apply(null, items.map(function (r) { return r.total || 0; }).concat([0]));
@@ -1914,7 +1923,7 @@ var CAT = E.CATEGORIES, FIELDS = {};
 D.SCHEMA.forEach(function (g) { g.f.forEach(function (f) { FIELDS[f[0]] = f; }); });
 
 /* ---------- durum ---------- */
-function freshUi() { return { cur: '$', tip: 0, tipDone: true, param: 'demand', metric: 'perKm', routeOpen: null, bm: 'live', tab: 'sum', wi: { fuel: false, driver: false, ratio: false, price: false } }; }
+function freshUi() { return { cur: '$', tip: 0, tipDone: true, param: 'demand', metric: 'perKm', routeOpen: null, bm: 'live', tab: 'sum', anOpen: !!window.__rvOpenAnalysis, wi: { fuel: false, driver: false, ratio: false, price: false } }; }
 var fieldErr = {}, shTab = 'ops';
 function reset() { cfg = E.defaultConfig(); ui = freshUi(); raw = {}; sim.t = 0; sim.playing = false; }
 reset();
@@ -2050,7 +2059,9 @@ document.addEventListener('input', function (e) {
 document.addEventListener('focusout', function (e) { var t = e.target; if (t.dataset && t.dataset.name && !String(t.value).trim()) { var v = veh(t.dataset.name); if (v) { v.name = CAT[v.category].label; t.value = v.name; fillPair(); update(); } } if (t.dataset && (t.dataset.name || t.dataset.model)) fillPair(); });
 document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.dataset && d.dataset.g) openCards[d.dataset.g] = d.open; }, true);
 document.addEventListener('click', function (e) { var t = e.target.closest('[data-tab]'), st = e.target.closest('[data-st]'); if (t) { ui.tab = t.dataset.tab; update(); } else if (st) { shTab = st.dataset.st; syncInputs(); } });
-$('goAnalysis').onclick = function () { setSheet(false); $('analysis').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+function setAnalysis(on) { ui.anOpen = !!on; $('anBody').hidden = !on; $('anToggle').setAttribute('aria-expanded', on ? 'true' : 'false'); $('anToggle').firstChild.textContent = on ? 'Detaylı analizi gizle ' : 'Detaylı analiz ve raporlar '; save(); }
+$('anToggle').onclick = function () { setAnalysis(!ui.anOpen); };
+$('goAnalysis').onclick = function () { setSheet(false); setAnalysis(true); $('analysis').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 /* mobil: açılır-kapanır alt panel (kapalıyken yalnız özet çubuğu) ve harita düğmeleri için ⋯ */
 function setSheet(open) { $('panel').classList.toggle('open', open); $('sumBar').setAttribute('aria-expanded', open ? 'true' : 'false'); }
 $('sumBar').onclick = function () { setSheet(!$('panel').classList.contains('open')); };
@@ -2204,7 +2215,7 @@ function syncControls() {
   $('pp').textContent = sim.playing ? '⏸' : '▶'; $('pp').setAttribute('aria-label', sim.playing ? 'Duraklat' : (sim.t > 0 && sim.t < simEnd() ? 'Devam et' : 'Oynat'));
   $('pp').disabled = !ok; $('rs').disabled = !liveReady(); $('tl').disabled = !ok; document.querySelectorAll('.sp').forEach(function (b) { b.disabled = !liveReady(); b.setAttribute('aria-pressed', +b.getAttribute('data-sp') === sim.speed ? 'true' : 'false'); });
   $('timeline').classList.toggle('blocked', !ok);
-  $('tlTxt').textContent = ok ? 'Simülasyon ' + clockStr(sim.t) + ' · geçen ' + elapsedStr(sim.t) + ' / ' + elapsedStr(simEnd()) + (mapState === 'error' ? ' · harita açılamadı, yalnız saat ve canlı maliyet çalışır' : '') + (routeInfo.kind === 'demo' ? ' · DEMO rota' : '') : why;
+  $('tlTxt').textContent = ok ? (sim.t <= 0 && !sim.playing ? '▶ ile günü başlatın: araçlar seferlerini yapar, maliyet araçların üstünde birikir' + (routeInfo.kind === 'demo' ? ' · DEMO rota' : '') : 'Simülasyon ' + clockStr(sim.t) + ' / gün sonu ' + clockStr(simEnd()) + (mapState === 'error' ? ' · harita açılamadı, yalnız saat ve canlı maliyet çalışır' : '') + (routeInfo.kind === 'demo' ? ' · DEMO rota' : '')) : why;
   $('pp').title = ok ? 'Oynat / duraklat / devam' : why;
 }
 /* sefer sonu bildirimi (haritanın üstünde): biten seferin maliyeti ve karşı modelin aynı sefer maliyeti */
@@ -2222,9 +2233,9 @@ function renderLive() {
     var cars = live.at(sim.t), models = live.modelsAt(sim.t), byM = {}; models.forEach(function (m) { byM[m.id] = m; });
     var V = r.vehicles, pair = [r.kpi.a, r.kpi.b], allDone = cars.every(function (c) { return c.done; });
     $('hudSt').textContent = !movePossible() ? 'Park halinde' : allDone ? 'Gün tamam' : sim.playing ? 'Çalışıyor' : sim.t > 0 ? 'Duraklatıldı' : 'Hazır';
-    $('hudRows').innerHTML = pair.map(function (id) { var m = byM[id]; return '<div class="hr" style="--c:' + esc(m.color) + '"><div class="hr-n"><i></i><b>' + esc(m.name) + ' ×' + m.n + '</b><span>sefer ' + m.tripsDone + '/' + m.tripsTotal + '</span></div><div class="hr-v"><span>' + nf(m.km, 1) + ' km</span><span>' + nf(m.energyQty, 1) + ' ' + m.unit + '</span><b>' + moneyD(m.total) + '</b></div><div class="hr-p"><i style="width:' + (m.progress * 100).toFixed(1) + '%"></i></div></div>'; }).join('');
+    $('hudRows').innerHTML = pair.map(function (id) { var m = byM[id]; return '<div class="hr" style="--c:' + esc(m.color) + '"><div class="hr-n"><i></i><b>' + esc(m.name) + ' ×' + m.n + '</b></div><div class="hr-v"><span>' + nf(m.km, 1) + ' km</span><b>' + moneyD(m.total) + '</b></div><div class="hr-p"><i style="width:' + (m.progress * 100).toFixed(1) + '%"></i></div></div>'; }).join('');
     var a = byM[r.kpi.a], b = byM[r.kpi.b], dNow = b.total - a.total, dDay = b.dayTotal - a.dayTotal;
-    $('hudDiff').innerHTML = 'Bugün şu ana kadar maliyet farkı <b class="' + (dNow < 0 ? 'bad' : 'good') + '">' + moneyD(dNow) + '</b>';
+    $('hudDiff').innerHTML = 'Şu ana kadar fark <b class="' + (dNow < 0 ? 'bad' : 'good') + '">' + moneyD(dNow) + '</b>';
     $('liveDiff').innerHTML = '<div><span>Bugün şu ana kadar fark (' + esc(b.name) + ' − ' + esc(a.name) + ')</span><b class="' + (dNow < 0 ? 'bad' : 'good') + '">' + moneyD(dNow) + '</b></div><div><span>Gün sonu fark (tam gün)</span><b class="' + (dDay < 0 ? 'bad' : 'good') + '">' + moneyD(dDay) + '</b></div>';
     if (ui.bm === 'live') renderBars(r, models);
     if (mapState === 'ready') {
@@ -2253,7 +2264,7 @@ function renderCar(cars, models, r) {
   $('ccBig').innerHTML = moneyD(c.total) + '<small>bugün (06:00\'dan şimdiye)</small>';
   var kmNow = c.km > 0 ? c.total / c.km : null, kmO = o ? V[o].perKm : null;
   $('ccGrid').innerHTML = [['Yol', nf(c.km, 1) + ' km'], [c.unit === 'kWh' ? 'Elektrik' : 'Dizel', nf(c.energyQty, 1) + ' ' + c.unit], ['km başına (bugün)', kmNow === null ? '—' : money(kmNow, 2)], ['Sefer başına (motor)', moneyD(v.perTrip)], ['Ortalama hız', nf(c.speed, 0) + ' km/sa'], [o ? V[o].name + ' km başına' : 'Araç sayısı', o ? money(kmO, 2) : String(v.n)]].map(function (x) { return '<div><span>' + esc(x[0]) + '</span><b>' + esc(x[1]) + '</b></div>'; }).join('');
-  var items = [['Enerji / yakıt', c.cost.energy, '--c-energy'], ['Bakım + lastik', c.cost.maint, '--c-maint'], ['Personel', c.cost.people, '--c-people'], ['Amortisman + finansman', c.cost.dep + c.cost.fin, '--c-capital'], ['Sigorta, vergi, lisans', c.cost.fixed, '--c-fixed']], tot = Math.max(c.total, 1e-9);
+  var items = [['Enerji / yakıt', c.cost.energy, '--c-energy'], ['Bakım ve lastik', c.cost.maint, '--c-maint'], ['Sürücü / operatör', c.cost.people, '--c-people'], ['Araç bedeli (değer kaybı + faiz)', c.cost.dep + c.cost.fin, '--c-capital'], ['Sigorta ve vergiler', c.cost.fixed, '--c-fixed']], tot = Math.max(c.total, 1e-9);
   $('ccItems').innerHTML = items.map(function (x) { return '<div class="ci"><span><i style="background:var(' + x[2] + ')"></i>' + esc(x[0]) + '</span><b>' + moneyD(x[1]) + '</b><u style="width:' + (x[1] / tot * 100).toFixed(1) + '%;background:var(' + x[2] + ')"></u></div>'; }).join('');
 }
 $('ccClose').onclick = function () { carSel = null; renderLive(); };
@@ -2276,6 +2287,8 @@ function renderWhatIf(r, on) {
 }
 /* "Neden bu sonuç?": km başına maliyet farkının hangi kalemden geldiği */
 /* araç sayısı: karar kartında [−] sayı [+]; otomatik (günlük sefere göre) veya elle */
+/* geri ödeme süresi, düz dille */
+function payText(be) { if (be.status === 'immediate') return 'ilk günden ucuz'; if (be.status === 'never' || be.years === null) return 'geri ödemez'; return be.years < 2 ? 'yaklaşık ' + Math.max(1, Math.round(be.years * 12)) + ' ay' : 'yaklaşık ' + nf(be.years, 1) + ' yıl'; }
 function fleetCtl(c, v) {
   var manual = v && v.count > 0, nm = esc(c.name);
   return '<span class="fl" role="group" aria-label="' + nm + ' araç sayısı"><button type="button" data-fl="' + esc(c.id) + '" data-d="-1" aria-label="' + nm + ' araç sayısını azalt"' + (c.n <= 1 ? ' disabled' : '') + '>−</button><output aria-live="polite">' + c.n + '</output><button type="button" data-fl="' + esc(c.id) + '" data-d="1" aria-label="' + nm + ' araç sayısını artır"' + (c.n >= 200 ? ' disabled' : '') + '>+</button></span>' +
@@ -2288,7 +2301,7 @@ document.addEventListener('click', function (e) {
   else if (au) { var w = veh(au.dataset.flAuto); if (w) { w.count = 0; window.__flFocus = null; update(); } }
 });
 function renderWhy(r) {
-  var V = r.vehicles, K = r.kpi, A = V[K.a], B = V[K.b], names = ['Enerji / yakıt', 'Bakım + lastik', 'Personel', 'Amortisman + finansman', 'Sigorta, vergi, lisans'];
+  var V = r.vehicles, K = r.kpi, A = V[K.a], B = V[K.b], names = ['Enerji / yakıt', 'Bakım ve lastik', 'Sürücü / operatör', 'Araç bedeli (değer kaybı + faiz)', 'Sigorta ve vergiler'];
   var per = function (c) { var f = c.kmv > 0 ? 1 / c.kmv : 0; return segsOf(c, f); }, pa = per(A), pb = per(B), win = A.perKm !== null && B.perKm !== null && A.perKm <= B.perKm ? A : B, los = win === A ? B : A;
   var rows = names.map(function (n, i) { return { n: n, d: pa[i] - pb[i] }; }).sort(function (x, y) { return Math.abs(y.d) - Math.abs(x.d); }).slice(0, 3);
   var adv = names.map(function (n, i) { return { n: n, v: (win === A ? pb[i] - pa[i] : pa[i] - pb[i]) }; }).sort(function (x, y) { return y.v - x.v; })[0];
@@ -2351,12 +2364,12 @@ function draw() {
   var sav = K.annualSaving, red = B.fleet > 0 ? sav / B.fleet * 100 : NaN, win = sav >= 0 ? A : B, lose = sav >= 0 ? B : A, redW = lose.fleet > 0 ? Math.abs(sav) / lose.fleet * 100 : NaN;
   $('rLbl').textContent = Math.abs(sav) < 0.5 ? 'İki araç yaklaşık aynı maliyette' : win.name + ' ' + pct(redW) + ' daha ekonomik';
   var big = $('rBig'); big.textContent = (sav < 0 ? '−' : '') + money(Math.abs(sav)).replace('−', ''); big.className = 'big' + (sav < 0 ? ' bad' : '');
-  $('rSub').textContent = (sav >= 0 ? 'Tahmini yıllık tasarruf' : 'Tahmini yıllık ek maliyet') + ' · ' + A.name + ', ' + B.name + ' yerine · ' + sc.demand + ' sefer/gün';
-  var cmpRows = [['km başına', function (c) { return c.perKm; }, 2], ['Sefer başına', function (c) { return c.perTrip; }, 2], ['Yıllık filo (' + 'tüm araçlar' + ')', function (c) { return c.fleet; }, 0]];
+  $('rSub').textContent = (sav >= 0 ? 'Tahmini yıllık tasarruf' : 'Tahmini yıllık ek maliyet') + ' · ' + B.name + ' yerine ' + A.name;
+  var cmpRows = [['1 km\'de', function (c) { return c.perKm; }, 2], ['1 seferde', function (c) { return c.perTrip; }, 2]];
   $('cmpGrid').innerHTML = '<div class="cm-h"></div>' + [A, B].map(function (c) { return '<div class="cm-h" style="--c:' + esc(c.color) + '"><span class="nm"><i></i>' + esc(c.name) + '</span></div>'; }).join('') +
     cmpRows.map(function (row) { var x = row[1](A), y = row[1](B), ax = x !== null && y !== null && x < y, by = x !== null && y !== null && y < x; return '<div class="cm-l">' + row[0] + '</div><div class="cm-v' + (ax ? ' win' : '') + '">' + money(x, row[2]) + '</div><div class="cm-v' + (by ? ' win' : '') + '">' + money(y, row[2]) + '</div>'; }).join('');
   $('fleetRow').innerHTML = '<div class="fr-l">Araç sayısı</div>' + [A, B].map(function (c) { return '<div class="fr" style="--c:' + esc(c.color) + '"><span class="nm"><i></i>' + esc(c.name) + '</span>' + fleetCtl(c, veh(c.id)) + '</div>'; }).join('');
-  $('rFoot').textContent = (wiOn ? 'What-if aktif · ' : '') + 'Geri ödeme: ' + K.breakEven.label + ' · ' + nf(rt.km, 1) + ' km tek yön (' + sourceName(rt.source) + ')';
+  $('rFoot').textContent = (wiOn ? 'Ya olursa aktif · ' : '') + 'Geri ödeme: ' + payText(K.breakEven) + ' · rota ' + nf(rt.km, 1) + ' km (' + sourceName(rt.source) + ')';
   /* geri ödeme / toplam (Yatırım ve Geri Ödeme sekmesi) */
   var be = K.breakEven, bw = K.breakEvenWage, bsel = veh(K.b);
   $('extra').innerHTML = [
@@ -2477,7 +2490,7 @@ function applyLoaded(d, notes) {
   var rt = d.cfg.route; if (rt) { if (rt.mode === 'route' || rt.mode === 'manual') cfg.route.mode = rt.mode; if (Number.isFinite(rt.manualKm)) cfg.route.manualKm = rt.manualKm;
     if (Array.isArray(rt.waypoints) && rt.waypoints.length <= 25 && rt.waypoints.every(function (w) { return w && typeof w.n === 'string' && Number.isFinite(w.lat) && Number.isFinite(w.lon) && Math.abs(w.lat) <= 90 && Math.abs(w.lon) <= 180; })) cfg.route.waypoints = rt.waypoints.map(function (w) { return { n: w.n, lat: w.lat, lon: w.lon }; }); }
   if (d.ui) { if (['$', '€', '₺'].indexOf(d.ui.cur) > -1) ui.cur = d.ui.cur; if (typeof d.ui.routeOpen === 'boolean') ui.routeOpen = d.ui.routeOpen; if (Number.isInteger(d.ui.tip) && d.ui.tip >= 0 && d.ui.tip < D.TIPS.length) ui.tip = d.ui.tip; ui.tipDone = d.ui.tipDone === true;
-    if (C.PARAMS.some(function (p) { return p.id === d.ui.param; })) ui.param = d.ui.param; if (C.METRICS.some(function (m) { return m.id === d.ui.metric; })) ui.metric = d.ui.metric; if (['live', 'trip', 'year'].indexOf(d.ui.bm) > -1) ui.bm = d.ui.bm; if (['sum', 'dist', 'inv', 'sens'].indexOf(d.ui.tab) > -1) ui.tab = d.ui.tab; if (d.ui.wi && typeof d.ui.wi === 'object') Object.keys(WI).forEach(function (k) { ui.wi[k] = d.ui.wi[k] === true; }); }
+    if (C.PARAMS.some(function (p) { return p.id === d.ui.param; })) ui.param = d.ui.param; if (C.METRICS.some(function (m) { return m.id === d.ui.metric; })) ui.metric = d.ui.metric; if (['live', 'trip', 'year'].indexOf(d.ui.bm) > -1) ui.bm = d.ui.bm; if (['sum', 'dist', 'inv', 'sens'].indexOf(d.ui.tab) > -1) ui.tab = d.ui.tab; if (typeof d.ui.anOpen === 'boolean' && !window.__rvOpenAnalysis) ui.anOpen = d.ui.anOpen; if (d.ui.wi && typeof d.ui.wi === 'object') Object.keys(WI).forEach(function (k) { ui.wi[k] = d.ui.wi[k] === true; }); }
   if (d.raw && typeof d.raw === 'object') Object.keys(d.raw).forEach(function (id) { if (typeof d.raw[id] === 'string' && Number.isNaN(parse(d.raw[id]))) { var p = id.split('.'); if ((p[0] === 's' && id in {}) || false) return; if (p[0] === 'v' && !veh(p[1])) return; if (p[0] === 'p' || p[0] === 'sl') return; raw[id] = d.raw[id]; if (id.charAt(1) === '.') setPath(id, NaN); } });
   if (notes && notes.length) setTimeout(function () { toast(notes.join(' ')); }, 800);
 }
@@ -2492,7 +2505,7 @@ function load() {
 }
 
 /* ---------- başlat ---------- */
-buildStatic(); load(); buildFleet();
+buildStatic(); load(); buildFleet(); setAnalysis(ui.anOpen);
 placeRoute(); renderWps(); renderTip(); onMapState('loading', ''); syncControls();
 startMap(); routeChanged();
 window.__app = { cfg: function () { return cfg; }, routeInfo: function () { return routeInfo; }, sim: function () { return { t: sim.t, playing: sim.playing, speed: sim.speed, end: simEnd() }; }, setSim: setSim, live: function () { return live; }, play: simPlay, pause: simPause, reset: simReset };

@@ -96,13 +96,13 @@
       <div class="fleet-row" id="fleetRow"></div>
       <div class="cmp" id="cmpGrid"></div>
       <p class="small muted" id="cmpNote" hidden></p>
-      <div class="r-foot"><span class="tag">GÖSTERİM</span><span id="rFoot">—</span></div>
+      <div class="r-foot"><span class="tag">ÖRNEK</span><span id="rFoot">—</span></div>
     </div>
 
 
 
     <div class="card" id="yearCard">
-      <div class="c-head"><b>Yıllık maliyet</b><span class="muted small">tüm araçlar, bir yıl</span></div>
+      <div class="c-head"><b>Paranın gittiği yerler</b><span class="muted small">yıllık, tüm araçlar</span></div>
       <div class="cbars" id="yearBars"></div><div class="legend" id="lgYear"></div>
     </div>
 
@@ -129,6 +129,8 @@
 <div class="warns wrapx" id="warns" aria-live="polite"></div>
 
 <section class="analysis wrapx" id="analysis">
+  <button type="button" class="an-toggle" id="anToggle" aria-expanded="false" aria-controls="anBody">Detaylı analiz ve raporlar <span aria-hidden="true">▾</span></button>
+  <div id="anBody" hidden>
   <h2>Detaylı Analiz</h2>
   <p class="sub">Grafikler, tablolar ve haritadaki rota aynı hesap motorundan beslenir. Seçili karşılaştırma: <b id="anPair">—</b>.</p>
   <div class="tabs" role="tablist" aria-label="Analiz bölümleri" id="anTabs">
@@ -167,6 +169,7 @@
         <div class="row2"><label class="sr" for="sensParam">Parametre</label><select id="sensParam" class="sel"></select><label class="sr" for="sensMetric">Gösterge</label><select id="sensMetric" class="sel"></select></div></div>
       <div class="chartbox" id="chSens"></div><div class="legend" id="lgVeh2"></div><p class="small muted" id="sensNote"></p>
     </div>
+  </div>
   </div>
 </section>
 

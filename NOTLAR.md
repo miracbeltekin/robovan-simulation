@@ -46,3 +46,9 @@ Referans site (heritage-b.club/lab/robotaxi) kaynak koduyla yeniden incelendi. F
 - **Karşılaştırma seçici gizli:** iki modelde Robovan ↔ Geleneksel Van sabittir; seçici üçüncü model eklenince görünür.
 - **Mobil:** harita ekranın ~%80'i; sonuçlar açılır-kapanır alt panelde (kapalıyken yalnız "Robovan %51 daha ekonomik · $81.118/yıl" özet çubuğu); harita görünüm düğmeleri ⋯ arkasında.
 - Yeni test: `tests/ui-check8.js`.
+
+## v0.9.1 — daha anlaşılır dil ve tek çubuk analiz
+- Maliyet kalemleri sade Türkçe ile adlandırıldı; karar kartında "1 km'de / 1 seferde" satırları ve tek cümlelik geri ödeme ("ilk günden ucuz", "yaklaşık N ay", "geri ödemez").
+- Haritada araç üstü kutusu: ad ×adet · km · $. Zaman çizelgesi ipucu tek cümle.
+- "Detaylı analiz ve raporlar" artık varsayılan olarak kapalı tek çubuk; açılınca sekmeler görünür, tercih hatırlanır. (Test kancası: `window.__rvOpenAnalysis`.)
+- Hesap motoru ve formüller değişmedi.

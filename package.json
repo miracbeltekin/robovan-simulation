@@ -1,7 +1,7 @@
 {
   "name": "robovan-sim",
   "private": true,
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Robovan Maliyet Simülatörü: motor, arayüz, testler. Çıktı tek dosya: dist/index.html",
   "scripts": {
     "build": "node tools/build-ui.js",

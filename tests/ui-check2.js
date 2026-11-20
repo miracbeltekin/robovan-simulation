@@ -67,7 +67,7 @@ const out = []; const ok = (n, c, x) => out.push((c ? 'GEÇTİ ' : 'KALDI ') + n
   const risky = body.match(/[^.\n]*\b(kesin|garanti)[^.\n]*/gi) || [];
   ok('H2 "kesin/garanti" yalnız olumsuz uyarı cümlesinde geçiyor', risky.every(s => /garanti edilmez|kesin değil|garanti verilmez|garantisi yoktur/i.test(s)), risky.join(' || '));
   ok('H3 Sonuç etiketleri "Tahmini" ile başlıyor', (await p.textContent('#rSub')).startsWith('Tahmini') && true);
-  ok('H4 "GÖSTERİM" etiketi sonuç kartında var', (await p.textContent('#resultCard')).includes('GÖSTERİM'));
+  ok('H4 "ÖRNEK" etiketi sonuç kartında var', (await p.textContent('#resultCard')).includes('ÖRNEK'));
   const c1 = await b.newContext({ ...devices['iPhone 13'] }); await H.blockAllExternal(c1); const mp = await c1.newPage(); await mp.goto(url); await mp.waitForTimeout(400);
   await mp.click('#sumBar'); await mp.waitForTimeout(600); await mp.evaluate(() => document.getElementById('scopeNote').scrollIntoView()); ok('H5 Mobilde kontrollü alan uyarısı görünür', (await mp.isVisible('#scopeNote')));
   /* 5. Anahtarsız: tüm KPI sayısal */
